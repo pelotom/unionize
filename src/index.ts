@@ -62,12 +62,30 @@ export function unionizeCustom<
     }
   }
 
+  const withTagProperty = <NewTagProp extends string>(newTagProp: NewTagProp) =>
+    unionizeCustom<
+      Record,
+      NewTagProp,
+      ValProp,
+      { [T in keyof Record]: CustomVariant<NewTagProp, T, ValProp, Record[T]> }
+    >(newTagProp, valProp)
+
+  const withValueProperty = <NewValProp extends string>(newValProp: NewValProp) =>
+    unionizeCustom<
+      Record,
+      TagProp,
+      NewValProp,
+      { [T in keyof Record]: CustomVariant<TagProp, T, NewValProp, Record[T]> }
+    >(tagProp, newValProp)
+
   return addCreators({
     _Tags: undefined as any as Tags,
     _Record: undefined as any as Record,
     _Union: undefined as any as Union,
     is,
     match,
+    withTagProperty,
+    withValueProperty,
   })
 }
 
