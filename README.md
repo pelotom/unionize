@@ -15,17 +15,22 @@ const Action = unionize<{
 type Action = typeof Action._Union;
 
 // Match expressions
-function getTodoId(action: Action): string {
-  return Action.match(
-    { // case analysis
-      ADD_TODO: ({ id }) => id,
-      TOGGLE_TODO: ({ id }) => id,
-    },
-
-    // default; if not provided the above cases will be typechecked
-    // for exhaustiveness
-    type => { throw Error(`action type ${type} has no associated id`) }
-  );
+const todosReducer = (state: Todo[] = [], action: Action) => Action.match(
+  { // handle cases as pure functions
+    ADD_TODO: ({ id, text }) => [
+      ...state,
+      { id, text, completed: false }
+    ],
+    TOGGLE_TODO: ({ id }) => state.map(todo =>
+      todo.id === id
+        ? {...todo, completed: !todo.completed}
+        : todo
+    ),
+  },
+  // default; if not provided the above cases will be statically checked
+  // for exhaustiveness
+  () => state
+)(action);
 
 // Variant predicates
 (action$: Observable<Action>) => action$
