@@ -1,0 +1,32 @@
+{
+  "name": "unionize",
+  "version": "0.0.0",
+  "description": "Boilerplate-free functional sum types in TypeScript",
+  "repository": "https://github.com/pelotom/unionize",
+  "author": "Tom Crockett <pelotom@gmail.com>",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "./lib/index.d.ts",
+  "scripts": {
+    "build": "tsc --pretty",
+    "test": "jest --no-cache --verbose --coverage"
+  },
+  "devDependencies": {
+    "jest": "^20.0.4",
+    "ts-jest": "^20.0.10",
+    "typescript": "^2.4.2"
+  },
+  "jest": {
+    "verbose": false,
+    "testRegex": ".*/*.spec.ts$",
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "transform": {
+      "\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor"
+    },
+    "mapCoverage": true,
+    "testEnvironment": "node"
+  }
+}
