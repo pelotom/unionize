@@ -2,10 +2,18 @@
 
 Define unions via records for great good!
 
+## Install
+
+```
+yarn add unionize
+```
+
 ## Example
 
 Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to value types:
 ```ts
+import { unionizeCustom } from 'unionize'
+
 // Define a record mapping tag literals to value types
 const Action = unionizeCustom('type', 'payload')<{
   ADD_TODO: { id: string; text: string }
