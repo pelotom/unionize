@@ -6,7 +6,7 @@ Define unions via records for great good!
 import unionize from 'unionize'
 
 const Action = unionize<{
-  ADD_TODO: { id: string; todoText: string }
+  ADD_TODO: { id: string; text: string }
   SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
   TOGGLE_TODO: { id: string }
 }>();
