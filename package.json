@@ -1,6 +1,6 @@
 {
   "name": "unionize",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Boilerplate-free functional sum types in TypeScript",
   "repository": "https://github.com/pelotom/unionize",
   "author": "Tom Crockett <pelotom@gmail.com>",
