@@ -3,17 +3,17 @@
 Define unions via records for great good!
 
 ```ts
-import unionize from 'unionize'
+import { unionizeCustom } from 'unionize'
 
 // Define a record mapping tag literals to value types
-const Action = unionize<{
-  ADD_TODO: { id: string; text: string }
-  SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
-  TOGGLE_TODO: { id: string }
-}>()
-  // Change the default tag and value properties as needed
-  .withTagProperty('type')
-  .withValueProperty('payload');
+const Action = unionizeCustom<
+  {
+    ADD_TODO: { id: string; text: string }
+    SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
+    TOGGLE_TODO: { id: string }
+  },
+  // Set custom tag and value properties
+  'type', 'payload'>('type', 'payload');
 
 // Extract the inferred tagged union:
 // type Action =
