@@ -37,8 +37,7 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match(
         : todo
     ),
   },
-  // default; if not provided the above cases will be typechecked
-  // for exhaustiveness
+  // default; if not provided, cases will be typechecked for exhaustiveness
   () => state
 )(action);
 
