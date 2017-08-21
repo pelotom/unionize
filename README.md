@@ -4,7 +4,7 @@ Define unions via records for great good!
 
 ## Example
 
-Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to type values:
+Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to value types:
 ```ts
 // Define a record mapping tag literals to value types
 const Action = unionizeCustom('type', 'payload')<{
