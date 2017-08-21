@@ -30,7 +30,7 @@ interface Todo {
 
 // Match and transform values of the union type
 const todosReducer = (state: Todo[] = [], action: Action) => Action.match(
-  { // handle cases as pure functions
+  { // handle cases as pure functions instead of switch statements
     ADD_TODO: ({ id, text }) => [
       ...state,
       { id, text, completed: false }
