@@ -3,7 +3,7 @@
 Define unions via records for great good!
 
 ```ts
-import unionize from '.'
+import unionize from 'unionize'
 
 const Action = unionize<{
   ADD_TODO: { id: string; todoText: string }
