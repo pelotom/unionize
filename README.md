@@ -15,8 +15,12 @@ const Action = unionize<{
   .withTagProperty('type')
   .withValueProperty('payload');
 
-// Extract the inferred union type for the above
+// Extract the inferred union type
 type Action = typeof Action._Union;
+// type Action =
+//  | { type: ADD_TODO; payload: { id: string; text: string } }
+//  | { type: SET_VISIBILITY_FILTER; payload: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED' }
+//  | { type: TOGGLE_TODO; payload: { id: string } }
 
 interface Todo {
   id: string
