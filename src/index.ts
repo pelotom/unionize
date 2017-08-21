@@ -8,15 +8,16 @@ export type CustomVariant<TagProp extends string, Tag, ValProp extends string, V
   & { [_ in ValProp]: Value }
 
 export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T, Record[T]> }>() {
-  return unionizeCustom<Record, 'tag', 'value', TaggedTable>('tag', 'value')
+  return unionizeCustom('tag', 'value')<Record, TaggedTable>()
 }
 
-export function unionizeCustom<
-  Record,
+export const unionizeCustom = <
   TagProp extends string,
-  ValProp extends string,
+  ValProp extends string
+>(tagProp: TagProp, valProp: ValProp) => <
+  Record,
   TaggedTable = { [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]> }
->(tagProp: TagProp, valProp: ValProp) {
+>() => {
   // Keys and Tags should always be the same as long as no one is overriding the default TaggedTable,
   // but they need to be tracked separately to keep the type system happy
   type Keys = keyof Record

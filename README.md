@@ -6,14 +6,11 @@ Define unions via records for great good!
 import { unionizeCustom } from 'unionize'
 
 // Define a record mapping tag literals to value types
-const Action = unionizeCustom<
-  {
-    ADD_TODO: { id: string; text: string }
-    SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
-    TOGGLE_TODO: { id: string }
-  },
-  // Set custom tag and value properties
-  'type', 'payload'>('type', 'payload');
+const Action = unionizeCustom('type', 'payload')<{
+  ADD_TODO: { id: string; text: string }
+  SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
+  TOGGLE_TODO: { id: string }
+}>();
 
 // Extract the inferred tagged union:
 // type Action =
