@@ -25,7 +25,7 @@ export const unionizeCustom = <
   type Union = TaggedTable[Tags]
 
   type Creators = { [T in Keys]: (value: Record[T]) => Union }
-  const addCreators = <O extends {}>(obj: O) => new Proxy(obj as any as O & Creators, {
+  const addCreators = <O extends {}>(obj: O): O & Creators => new Proxy(obj as any as O & Creators, {
     get: <T extends Keys>(target: any, tag: T) => tag in target
       ? target[tag]
       : (value: Record[T]) => ({
@@ -35,7 +35,7 @@ export const unionizeCustom = <
   })
 
   type Predicates = { [T in Tags]: (variant: Union) => variant is TaggedTable[T] }
-  const addPredicates = <O extends {}>(obj: O) => new Proxy({} as any as O & Predicates, {
+  const addPredicates = <O extends {}>(obj: O): O & Predicates => new Proxy({} as any as O & Predicates, {
     get: <T extends Tags>(target: any, tag: T) => tag in target
       ? target[tag]
       : (variant: any) => variant[tagProp] === tag,
