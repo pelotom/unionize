@@ -41,8 +41,7 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match(
         : todo
     ),
   },
-  // default; if not provided, cases will be typechecked for exhaustiveness
-  () => state
+  () => state // default; if not provided, cases must be exhaustive
 )(action);
 
 // Variant predicates
