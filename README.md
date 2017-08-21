@@ -2,7 +2,7 @@
 
 Define unions via records for great good!
 
-## Install
+## Installation
 
 ```
 yarn add unionize
