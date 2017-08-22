@@ -67,7 +67,7 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match(
 
 ```ts
 (action$: Observable<Action>) => action$
-  .filter(Action.is.TOGGLE)
+  .filter(Action.is.TOGGLE_TODO)
   // The type of the resulting observable is refined appropriately...
   .mergeMap(({ text }) => /*...*/)
 ```
