@@ -1,6 +1,6 @@
-import { unionize } from '.'
+import { unionizeCustom } from '.'
 
-const Foo = unionize<{
+const Foo = unionizeCustom('flim', 'flam')<{
   x: number
   y: string
 }>()
@@ -12,8 +12,8 @@ beforeEach(() => {
 })
 
 it('creation', () => {
-  expect(foo.tag).toBe('x')
-  expect(foo.value).toBe(3)
+  expect(foo.flim).toBe('x')
+  expect(foo.flam).toBe(3)
 })
 
 it('predicates', () => {
