@@ -12,7 +12,7 @@ yarn add unionize
 
 Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to value types:
 ```ts
-import { unionizeCustom } from 'unionize'
+import { unionizeCustom, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
 const Action = unionizeCustom('type', 'payload')({
