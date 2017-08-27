@@ -64,10 +64,10 @@ export const unionizeCustom = <
     return (variant: Union): A => {
       for (const k in cases)
         if (k in is && is[k](variant))
-          return cases[k](variant[valProp as any])
+          return cases[k]((variant as any)[valProp])
 
       if (fallback)
-        return fallback(variant[tagProp as any])
+        return fallback((variant as any)[tagProp])
 
       // throw Error(`match failure: no handler for case ${variant[tagProp as any]}`)
       return undefined as any as A
