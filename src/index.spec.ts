@@ -1,9 +1,9 @@
-import { unionizeCustom } from '.'
+import { unionizeCustom, ofType, unionize } from '.'
 
-const Foo = unionizeCustom('flim', 'flam')<{
-  x: number
-  y: string
-}>()
+const Foo = unionizeCustom('flim', 'flam')({
+  x: ofType<number>(),
+  y: ofType<string>(),
+})
 
 let foo: typeof Foo._Union
 
@@ -30,4 +30,16 @@ it('matching', () => {
     { y: s => s.length, },
     () => 42,
   )(foo)).toBe(42)
+})
+
+it('enumerable tags', () => {
+  const Bar = unionize({
+    x: ofType<number>(),
+    y: ofType<string>(),
+    z: ofType<boolean>(),
+  })
+
+  const bar = Foo.match(Bar)(foo)
+  expect(bar.tag).toBe('x')
+  expect(bar.value).toBe(3)
 })

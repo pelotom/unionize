@@ -7,8 +7,8 @@ export type CustomVariant<TagProp extends string, Tag, ValProp extends string, V
   & { [_ in TagProp]: Tag }
   & { [_ in ValProp]: Value }
 
-export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T, Record[T]> }>() {
-  return unionizeCustom('tag', 'value')<Record, TaggedTable>()
+export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T, Record[T]> }>(record: Record) {
+  return unionizeCustom('tag', 'value')<Record, TaggedTable>(record)
 }
 
 export const unionizeCustom = <
@@ -17,7 +17,7 @@ export const unionizeCustom = <
 >(tagProp: TagProp, valProp: ValProp) => <
   Record,
   TaggedTable = { [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]> }
->() => {
+>(record: Record) => {
   // Keys and Tags should always be the same as long as no one is overriding the default TaggedTable,
   // but they need to be tracked separately to keep the type system happy
   type Keys = keyof Record
@@ -25,22 +25,19 @@ export const unionizeCustom = <
   type Union = TaggedTable[Tags]
 
   type Creators = { [T in Keys]: (value: Record[T]) => Union }
-  const addCreators = <O extends {}>(obj: O): O & Creators => new Proxy(obj as any as O & Creators, {
-    get: <T extends Keys>(target: any, tag: T) => tag in target
-      ? target[tag]
-      : (value: Record[T]) => ({
-        [tagProp as string]: tag,
-        [valProp as string]: value,
-      }),
-  })
+  const creators = {} as Creators
+  for (const tag in record) {
+    creators[tag] = (value: Record[typeof tag]) => ({
+      [tagProp as string]: tag,
+      [valProp as string]: value,
+    }) as any
+  }
 
   type Predicates = { [T in Tags]: (variant: Union) => variant is TaggedTable[T] }
-  const addPredicates = <O extends {}>(obj: O): O & Predicates => new Proxy({} as any as O & Predicates, {
-    get: <T extends Tags>(target: any, tag: T) => tag in target
-      ? target[tag]
-      : (variant: any) => variant[tagProp] === tag,
-  })
-  const is = addPredicates({})
+  const is = {} as Predicates
+  for (const tag in record) {
+    is[tag] = ((variant: any) => variant[tagProp] === tag) as any
+  }
 
   type Cases<K extends Keys, A> = {
     [T in K]: (value: Record[T]) => A
@@ -49,11 +46,9 @@ export const unionizeCustom = <
   function match<K extends Keys, A>(cases: Cases<K, A>, fallback: (tag: Keys) => A): (variant: Union) => A
   function match<K extends Keys, A>(cases: Cases<K, A>, fallback?: (tag: Keys) => A): (variant: Union) => A {
     return (variant: Union): A => {
-      for (const k in cases) {
-        if (is[k](variant)) {
+      for (const k in cases)
+        if (k in is && is[k](variant))
           return cases[k](variant[valProp as any])
-        }
-      }
 
       if (fallback)
         return fallback(variant[tagProp as any])
@@ -63,13 +58,15 @@ export const unionizeCustom = <
     }
   }
 
-  return addCreators({
+  return Object.assign({
     _Tags: undefined as any as Tags,
     _Record: undefined as any as Record,
     _Union: undefined as any as Union,
     is,
     match,
-  })
+  }, creators)
 }
+
+export const ofType = <T>() => undefined as any as T
 
 export default unionize
