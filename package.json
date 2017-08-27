@@ -9,7 +9,8 @@
   "types": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc --pretty",
-    "test": "jest --no-cache --verbose --coverage"
+    "test": "jest --no-cache --verbose --coverage",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "jest": "^20.0.4",
@@ -28,5 +29,8 @@
     },
     "mapCoverage": true,
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@types/jest": "^20.0.8"
   }
 }
