@@ -1,4 +1,4 @@
-# Unionize
+# Unionize [![Build Status](https://travis-ci.org/pelotom/unionize.svg?branch=master)](https://travis-ci.org/pelotom/unionize) [![Coverage Status](https://coveralls.io/repos/pelotom/unionize/badge.svg?branch=master)](https://coveralls.io/github/pelotom/unionize?branch=master)
 
 Define unions via records for great good!
 
