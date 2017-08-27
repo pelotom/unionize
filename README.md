@@ -15,11 +15,11 @@ Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to 
 import { unionizeCustom } from 'unionize'
 
 // Define a record mapping tag literals to value types
-const Action = unionizeCustom('type', 'payload')<{
-  ADD_TODO: { id: string; text: string }
-  SET_VISIBILITY_FILTER: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'
-  TOGGLE_TODO: { id: string }
-}>();
+const Action = unionizeCustom('type', 'payload')({
+  ADD_TODO: ofType<{ id: string; text: string }>(),
+  SET_VISIBILITY_FILTER: ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
+  TOGGLE_TODO: ofType<{ id: string }>(),
+});
 ```
 
 Extract the inferred tagged union:
