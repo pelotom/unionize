@@ -7,10 +7,26 @@ export type CustomVariant<TagProp extends string, Tag, ValProp extends string, V
   & { [_ in TagProp]: Tag }
   & { [_ in ValProp]: Value }
 
+/**
+ * Create a tagged union from a record mapping tags to value types, along with associated
+ * variant constructors, type predicates and `match` function.
+ *
+ * @param record A record mapping tags to value types. The actual values of the record don't
+ * matter; they're just used in the types of the resulting tagged union. See `ofType`.
+ */
 export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T, Record[T]> }>(record: Record) {
   return unionizeCustom('tag', 'value')<Record, TaggedTable>(record)
 }
 
+/**
+ * Create a tagged union from a record mapping tags to value types, along with associated
+ * variant constructors, type predicates and `match` function.
+ *
+ * @param tagProp A custom name for the tag property of the union.
+ * @param valProp A custom name for the value property of the union.
+ * @param record A record mapping tags to value types. The actual values of the record don't
+ * matter; they're just used in the types of the resulting tagged union. See `ofType`.
+ */
 export const unionizeCustom = <
   TagProp extends string,
   ValProp extends string
@@ -67,6 +83,11 @@ export const unionizeCustom = <
   }, creators)
 }
 
+/**
+ * Creates a pseudo-witness of a given type. That is, it pretends to return a value of
+ * type `T` for any `T`, but it's really just returning `undefined`. This white lie
+ * allows convenient expression of the value types in the record you pass to `unionize`.
+ */
 export const ofType = <T>() => undefined as any as T
 
 export default unionize
