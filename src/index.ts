@@ -7,6 +7,36 @@ export type CustomVariant<TagProp extends string, Tag, ValProp extends string, V
   & { [_ in TagProp]: Tag }
   & { [_ in ValProp]: Value }
 
+
+export type Unionized<Record, TaggedRecord> = {
+  _Tags: keyof TaggedRecord;
+  _Record: Record;
+  _Union: TaggedRecord[keyof TaggedRecord]
+  is: Predicates<TaggedRecord>
+  match: Match<Record, TaggedRecord>
+} & Creators<Record, TaggedRecord>
+
+export type Creators<Record, TaggedRecord> = {
+  [T in keyof Record]: (value: Record[T]) => TaggedRecord[keyof TaggedRecord]
+}
+
+export type Predicates<TaggedRecord> = {
+  [T in keyof TaggedRecord]: (variant: TaggedRecord[keyof TaggedRecord]) => variant is TaggedRecord[T]
+}
+
+export type Match<Record, TaggedRecord> = {
+  <A>(
+    cases: Cases<Record, keyof Record, A>
+  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
+  <K extends keyof Record, A>(
+    cases: Cases<Record, K, A>, fallback: (tag: keyof Record) => A
+  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
+}
+
+export type Cases<Record, K extends keyof Record, A> = {
+  [T in K]: (value: Record[T]) => A
+}
+
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
  * variant constructors, type predicates and `match` function.
@@ -14,8 +44,11 @@ export type CustomVariant<TagProp extends string, Tag, ValProp extends string, V
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
  */
-export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T, Record[T]> }>(record: Record) {
-  return unionizeCustom('tag', 'value')<Record, TaggedTable>(record)
+export function unionize<
+  Record,
+  TaggedRecord = { [T in keyof Record]: Variant<T, Record[T]> }
+>(record: Record): Unionized<Record, TaggedRecord> {
+  return unionizeCustom('tag', 'value')<Record, TaggedRecord>(record)
 }
 
 /**
@@ -27,21 +60,21 @@ export function unionize<Record, TaggedTable = { [T in keyof Record]: Variant<T,
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
  */
+
 export const unionizeCustom = <
   TagProp extends string,
   ValProp extends string
 >(tagProp: TagProp, valProp: ValProp) => <
   Record,
-  TaggedTable = { [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]> }
->(record: Record) => {
-  // Keys and Tags should always be the same as long as no one is overriding the default TaggedTable,
+  TaggedRecord = { [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]> }
+>(record: Record): Unionized<Record, TaggedRecord> => {
+  // Keys and Tags should always be the same as long as no one is overriding the default TaggedRecord,
   // but they need to be tracked separately to keep the type system happy
   type Keys = keyof Record
-  type Tags = keyof TaggedTable
-  type Union = TaggedTable[Tags]
+  type Tags = keyof TaggedRecord
+  type Union = TaggedRecord[Tags]
 
-  type Creators = { [T in Keys]: (value: Record[T]) => Union }
-  const creators = {} as Creators
+  const creators = {} as Creators<Record, TaggedRecord>
   for (const tag in record) {
     creators[tag] = (value: Record[typeof tag]) => ({
       [tagProp as string]: tag,
@@ -49,18 +82,14 @@ export const unionizeCustom = <
     }) as any
   }
 
-  type Predicates = { [T in Tags]: (variant: Union) => variant is TaggedTable[T] }
-  const is = {} as Predicates
+  const is = {} as Predicates<TaggedRecord>
   for (const tag in record) {
     is[tag] = ((variant: any) => variant[tagProp] === tag) as any
   }
 
-  type Cases<K extends Keys, A> = {
-    [T in K]: (value: Record[T]) => A
-  }
-  function match<A>(cases: Cases<Keys, A>): (variant: Union) => A
-  function match<K extends Keys, A>(cases: Cases<K, A>, fallback: (tag: Keys) => A): (variant: Union) => A
-  function match<K extends Keys, A>(cases: Cases<K, A>, fallback?: (tag: Keys) => A): (variant: Union) => A {
+  function match<A>(cases: Cases<Record, Keys, A>): (variant: Union) => A
+  function match<K extends Keys, A>(cases: Cases<Record, K, A>, fallback: (tag: Keys) => A): (variant: Union) => A
+  function match<K extends Keys, A>(cases: Cases<Record, K, A>, fallback?: (tag: Keys) => A): (variant: Union) => A {
     return (variant: Union): A => {
       for (const k in cases)
         if (k in is && is[k](variant))
