@@ -12,14 +12,14 @@ yarn add unionize
 
 Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to value types:
 ```ts
-import { unionizeCustom, ofType } from 'unionize'
+import { unionize, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
-const Action = unionizeCustom('type', 'payload')({
+const Action = unionize({
   ADD_TODO:                ofType<{ id: string; text: string }>(),
   SET_VISIBILITY_FILTER:   ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
   TOGGLE_TODO:             ofType<{ id: string }>(),
-});
+}, 'type', 'payload'); // optionally override tag and value property names
 ```
 
 Extract the inferred tagged union:

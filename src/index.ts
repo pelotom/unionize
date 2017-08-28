@@ -37,37 +37,43 @@ export type Cases<Record, K extends keyof Record, A> = {
   [T in K]: (value: Record[T]) => A
 }
 
-/**
- * Create a tagged union from a record mapping tags to value types, along with associated
- * variant constructors, type predicates and `match` function.
- *
- * @param record A record mapping tags to value types. The actual values of the record don't
- * matter; they're just used in the types of the resulting tagged union. See `ofType`.
- */
-export function unionize<
-  Record,
-  TaggedRecord = { [T in keyof Record]: Variant<T, Record[T]> }
->(record: Record): Unionized<Record, TaggedRecord> {
-  return unionizeCustom('tag', 'value')<Record, TaggedRecord>(record)
+export type Tagged<Record> = {
+  [T in keyof Record]: Variant<T, Record[T]>
+}
+
+export type CustomTagged<Record, TagProp extends string, ValProp extends string> = {
+  [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]>
 }
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
  * variant constructors, type predicates and `match` function.
  *
- * @param tagProp A custom name for the tag property of the union.
- * @param valProp A custom name for the value property of the union.
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
+ * @param tagProp An optional custom name for the tag property of the union.
+ * @param valProp An optional custom name for the value property of the union.
  */
+export function unionize<Record>(record: Record): Unionized<Record, Tagged<Record>>
+export function unionize<Record, TagProp extends string>(
+  record: Record,
+  tagProp: TagProp,
+): Unionized<Record, CustomTagged<Record, TagProp, 'value'>>
+export function unionize<Record, TagProp extends string, ValProp extends string>(
+  record: Record,
+  tagProp: TagProp,
+  valProp: ValProp,
+): Unionized<Record, CustomTagged<Record, TagProp, ValProp>>
+export function unionize<Record>(record: Record, tagProp = 'tag', valProp = 'value') {
+  return unionizeInternal(record, tagProp, valProp)
+}
 
-export const unionizeCustom = <
-  TagProp extends string,
-  ValProp extends string
->(tagProp: TagProp, valProp: ValProp) => <
+const unionizeInternal = <
   Record,
-  TaggedRecord = { [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]> }
->(record: Record): Unionized<Record, TaggedRecord> => {
+  TagProp extends string,
+  ValProp extends string,
+  TaggedRecord = CustomTagged<Record, TagProp, ValProp>
+>(record: Record, tagProp: TagProp, valProp: ValProp): Unionized<Record, TaggedRecord> => {
   // Keys and Tags should always be the same as long as no one is overriding the default TaggedRecord,
   // but they need to be tracked separately to keep the type system happy
   type Keys = keyof Record

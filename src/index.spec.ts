@@ -1,9 +1,9 @@
-import { unionizeCustom, ofType, unionize } from '.'
+import { ofType, unionize } from '.'
 
-const Foo = unionizeCustom('flim', 'flam')({
+const Foo = unionize({
   x: ofType<number>(),
   y: ofType<string>(),
-})
+}, 'flim', 'flam')
 
 let foo: typeof Foo._Union
 
