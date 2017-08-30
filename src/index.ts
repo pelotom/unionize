@@ -3,6 +3,7 @@ export type Unionized<Record, TaggedRecord> = {
   _Record: Record;
   _Union: TaggedRecord[keyof TaggedRecord]
   is: Predicates<TaggedRecord>
+  as: Casts<Record, TaggedRecord>
   match: Match<Record, TaggedRecord>
 } & Creators<Record, TaggedRecord>
 
@@ -12,6 +13,10 @@ export type Creators<Record, TaggedRecord> = {
 
 export type Predicates<TaggedRecord> = {
   [T in keyof TaggedRecord]: (variant: TaggedRecord[keyof TaggedRecord]) => variant is TaggedRecord[T]
+}
+
+export type Casts<Record, TaggedRecord> = {
+  [T in keyof Record]: (variant: TaggedRecord[keyof TaggedRecord]) => Record[T]
 }
 
 export type Match<Record, TaggedRecord> = {
@@ -75,7 +80,19 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
 
   const is = {} as Predicates<any>
   for (const tag in record) {
-    is[tag] = ((variant: any) => variant[tagProp] === tag) as any
+    is[tag] = ((variant: any) => variant[tagProp] === tag)
+  }
+
+  const as = {} as Casts<Record, any>
+  for (const expectedTag in record) {
+    as[expectedTag] = match(
+      {
+        [expectedTag]: (x: any) => x
+      },
+      actualTag => {
+        throw new Error(`Attempted to cast ${actualTag} as ${expectedTag}`)
+      }
+    )
   }
 
   function match(cases: any, fallback?: (tag: string) => any): (variant: any) => any {
@@ -85,7 +102,7 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
           return cases[k](valProp ? variant[valProp] : variant)
 
       if (fallback)
-        return fallback((variant as any)[tagProp])
+        return fallback(variant[tagProp])
 
       return undefined
     }
@@ -93,6 +110,7 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
 
   return Object.assign({
     is,
+    as,
     match,
   }, creators)
 }
