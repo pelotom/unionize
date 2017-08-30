@@ -40,6 +40,16 @@ describe('merged', () => {
         () => 42,
       )(foo)).toBe(42)
     })
+
+    describe('name conflicts', () => {
+      it('avoidable', () => {
+        const T = unionize({
+          foo: ofType<{ x: number }>(),
+        }, 'conflict')
+        const input = { x: 42, conflict: 'oops' }
+        expect(T.foo(input).conflict).toBe('foo')
+      })
+    })
   })
 
 describe('separate', () => {

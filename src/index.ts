@@ -67,15 +67,15 @@ export function unionize<Record, TagProp extends string, ValProp extends string>
 export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: string) {
   const creators = {} as Creators<Record, any>
   for (const tag in record) {
-    creators[tag] = (value: any) => valProp
-      ? ({
-        [tagProp as string]: tag,
-        [valProp as string]: value,
-      })
-      : Object.assign({
-        [tagProp as string]: tag },
-        value
-      )
+    creators[tag] = (value: any) => {
+      if (valProp)
+        return ({
+          [tagProp as string]: tag,
+          [valProp as string]: value,
+        })
+
+      return Object.assign({}, value, { [tagProp as string]: tag })
+    }
   }
 
   const is = {} as Predicates<any>
