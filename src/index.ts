@@ -1,13 +1,3 @@
-export interface Variant<Tag, Value> {
-  tag: Tag
-  value: Value
-}
-
-export type CustomVariant<TagProp extends string, Tag, ValProp extends string, Value> =
-  & { [_ in TagProp]: Tag }
-  & { [_ in ValProp]: Value }
-
-
 export type Unionized<Record, TaggedRecord> = {
   _Tags: keyof TaggedRecord;
   _Record: Record;
@@ -37,13 +27,15 @@ export type Cases<Record, K extends keyof Record, A> = {
   [T in K]: (value: Record[T]) => A
 }
 
-export type Tagged<Record> = {
-  [T in keyof Record]: Variant<T, Record[T]>
+export type MultiValueVariants<Record extends DictRecord, TagProp extends string> = {
+  [T in keyof Record]: { [_ in TagProp]: T } & Record[T]
 }
 
-export type CustomTagged<Record, TagProp extends string, ValProp extends string> = {
-  [T in keyof Record]: CustomVariant<TagProp, T, ValProp, Record[T]>
+export type SingleValueVariants<Record, TagProp extends string, ValProp extends string> = {
+  [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] }
 }
+
+export type DictRecord = { [tag: string]: { [field: string]: any } }
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -52,66 +44,54 @@ export type CustomTagged<Record, TagProp extends string, ValProp extends string>
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
  * @param tagProp An optional custom name for the tag property of the union.
- * @param valProp An optional custom name for the value property of the union.
+ * @param valProp An optional custom name for the value property of the union. If not specified,
+ * the value must be a dictionary type.
  */
-export function unionize<Record>(record: Record): Unionized<Record, Tagged<Record>>
-export function unionize<Record, TagProp extends string>(
+export function unionize<Record extends DictRecord>(
+  record: Record
+): Unionized<Record, MultiValueVariants<Record, 'tag'>>
+export function unionize<Record extends DictRecord, TagProp extends string>(
   record: Record,
   tagProp: TagProp,
-): Unionized<Record, CustomTagged<Record, TagProp, 'value'>>
+): Unionized<Record, MultiValueVariants<Record, TagProp>>
 export function unionize<Record, TagProp extends string, ValProp extends string>(
   record: Record,
   tagProp: TagProp,
   valProp: ValProp,
-): Unionized<Record, CustomTagged<Record, TagProp, ValProp>>
-export function unionize<Record>(record: Record, tagProp = 'tag', valProp = 'value') {
-  return unionizeInternal(record, tagProp, valProp)
-}
-
-const unionizeInternal = <
-  Record,
-  TagProp extends string,
-  ValProp extends string,
-  TaggedRecord = CustomTagged<Record, TagProp, ValProp>
->(record: Record, tagProp: TagProp, valProp: ValProp): Unionized<Record, TaggedRecord> => {
-  // Keys and Tags should always be the same as long as no one is overriding the default TaggedRecord,
-  // but they need to be tracked separately to keep the type system happy
-  type Keys = keyof Record
-  type Tags = keyof TaggedRecord
-  type Union = TaggedRecord[Tags]
-
-  const creators = {} as Creators<Record, TaggedRecord>
+): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>
+export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: string) {
+  const creators = {} as Creators<Record, any>
   for (const tag in record) {
-    creators[tag] = (value: Record[typeof tag]) => ({
-      [tagProp as string]: tag,
-      [valProp as string]: value,
-    }) as any
+    creators[tag] = (value: any) => valProp
+      ? ({
+        [tagProp as string]: tag,
+        [valProp as string]: value,
+      })
+      : Object.assign({
+        [tagProp as string]: tag },
+        value
+      )
   }
 
-  const is = {} as Predicates<TaggedRecord>
+  const is = {} as Predicates<any>
   for (const tag in record) {
     is[tag] = ((variant: any) => variant[tagProp] === tag) as any
   }
 
-  function match<A>(cases: Cases<Record, Keys, A>): (variant: Union) => A
-  function match<K extends Keys, A>(cases: Cases<Record, K, A>, fallback: (tag: Keys) => A): (variant: Union) => A
-  function match<K extends Keys, A>(cases: Cases<Record, K, A>, fallback?: (tag: Keys) => A): (variant: Union) => A {
-    return (variant: Union): A => {
+  function match(cases: any, fallback?: (tag: string) => any): (variant: any) => any {
+    return (variant: any) => {
       for (const k in cases)
         if (k in is && is[k](variant))
-          return cases[k]((variant as any)[valProp])
+          return cases[k](valProp ? variant[valProp] : variant)
 
       if (fallback)
         return fallback((variant as any)[tagProp])
 
-      return undefined as any as A
+      return undefined
     }
   }
 
   return Object.assign({
-    _Tags: undefined as any as Tags,
-    _Record: undefined as any as Record,
-    _Union: undefined as any as Union,
     is,
     match,
   }, creators)
