@@ -69,3 +69,9 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match({
   // The type of the resulting observable is refined appropriately...
   .mergeMap(({ text }) => /*...*/)
 ```
+
+#### Type casts
+
+```ts
+const { id, text } = Action.as.ADD_TODO(someAction) // throws if someAction is not an ADD_TODO
+```
