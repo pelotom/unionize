@@ -104,7 +104,6 @@ const unionizeInternal = <
       if (fallback)
         return fallback((variant as any)[tagProp])
 
-      // throw Error(`match failure: no handler for case ${variant[tagProp as any]}`)
       return undefined as any as A
     }
   }
