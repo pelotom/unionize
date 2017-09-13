@@ -8,7 +8,7 @@ export type Unionized<Record, TaggedRecord> = {
 } & Creators<Record, TaggedRecord>
 
 export type Creators<Record, TaggedRecord> = {
-  [T in keyof Record]: (value: Record[T]) => TaggedRecord[keyof TaggedRecord]
+  [T in (keyof Record & keyof TaggedRecord)]: (value: Record[T]) => TaggedRecord[T]
 }
 
 export type Predicates<TaggedRecord> = {
