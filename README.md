@@ -66,7 +66,7 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match({
 ```ts
 const epic = (action$: Observable<Action>) => action$
   .filter(Action.is.ADD_TODO)
-  // The type of the resulting observable is appropriately narrowed...
+  // The appropriately narrowed type of the resulting observable is inferred...
   .mergeMap(({ payload }) => console.log(payload.text))
 ```
 
