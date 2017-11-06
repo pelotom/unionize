@@ -64,10 +64,10 @@ const todosReducer = (state: Todo[] = [], action: Action) => Action.match({
 #### Type predicates
 
 ```ts
-(action$: Observable<Action>) => action$
-  .filter(Action.is.TOGGLE_TODO)
-  // The type of the resulting observable is refined appropriately...
-  .mergeMap(({ text }) => /*...*/)
+const epic = (action$: Observable<Action>) => action$
+  .filter(Action.is.ADD_TODO)
+  // The type of the resulting observable is appropriately narrowed...
+  .mergeMap(({ payload }) => console.log(payload.text))
 ```
 
 #### Type casts
