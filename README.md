@@ -10,7 +10,7 @@ yarn add unionize
 
 ## Example
 
-Call `unionize` or `unionizeCustom` on a record literal mapping tag literals to value types:
+Call `unionize` on a record literal mapping tag literals to value types:
 ```ts
 import { unionize, ofType } from 'unionize'
 
