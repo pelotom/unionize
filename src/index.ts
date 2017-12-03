@@ -90,16 +90,12 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     )
   }
 
-  function match(cases: any, fallback?: (tag: string) => any): (variant: any) => any {
+  function match(cases: any, fallback = (tag: string) => undefined): (variant: any) => any {
     return (variant: any) => {
-      for (const k in cases)
-        if (k in is && is[k](variant))
-          return cases[k](valProp ? variant[valProp] : variant)
-
-      if (fallback)
-        return fallback(variant[tagProp])
-
-      return undefined
+      const k = variant[tagProp]
+      return k in cases
+        ? cases[k](valProp ? variant[valProp] : variant)
+        : fallback(k)
     }
   }
 
