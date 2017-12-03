@@ -80,7 +80,7 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
 
   const is = {} as Predicates<any>
   for (const tag in record) {
-    is[tag] = ((variant: any) => variant[tagProp] === tag)
+    is[tag] = ((variant: any) => variant[tagProp] === tag) as any
   }
 
   const as = {} as Casts<Record, any>
