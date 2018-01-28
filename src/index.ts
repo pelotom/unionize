@@ -7,8 +7,34 @@ export type Unionized<Record, TaggedRecord> = {
   match: Match<Record, TaggedRecord>
 } & Creators<Record, TaggedRecord>
 
+/*
+ * Helper types for differentiating empty parameter types ({} and null)
+ */
+export type Bool = 'T' | 'F'
+
+export type If<B extends Bool, Then, Else> = {
+  T: Then
+  F: Else
+}[B]
+
+// this is a necessary intermediate type, can't be merged into ObjectHasKeys<O>
+export type StringContains<S extends string, L extends string> = (
+  { [K in S]: { _: 'T' } } &
+  { [key: string]: { _: 'F' } }
+)[L]['_']
+
+export type ObjectHasKeys<O> = StringContains<keyof O, keyof O>
+
+/*
+ * Unionized constituents
+ */
 export type Creators<Record, TaggedRecord> = {
-  [T in keyof Record]: (value: Record[T]) => TaggedRecord[keyof TaggedRecord]
+  [T in keyof Record]:
+    If<
+      ObjectHasKeys<Record[T]>,
+      (value: Record[T]) => TaggedRecord[keyof TaggedRecord],
+      () => TaggedRecord[keyof TaggedRecord]
+    >
 }
 
 export type Predicates<TaggedRecord> = {
