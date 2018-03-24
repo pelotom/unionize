@@ -101,6 +101,8 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     const k = variant[tagProp]
     return k in cases
       ? cases[k](valProp ? variant[valProp] : variant)
+      // here we can have '"undefined is not a function". Is it worth checking?
+      // it is <impossible> to get in ts but totally fine in js land
       : cases.default(variant)
   }
 
