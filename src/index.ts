@@ -19,17 +19,23 @@ export type Casts<Record, TaggedRecord> = {
   [T in keyof Record]: (variant: TaggedRecord[keyof TaggedRecord]) => Record[T]
 }
 
-export type Match<Record, TaggedRecord> = {
-  <A>(
-    cases: Cases<Record, keyof Record, A>
-  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
-  <K extends keyof Record, A>(
-    cases: Cases<Record, K, A>, fallback: (tag: keyof Record) => A
-  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
+export type Cases<Record, A> = {
+  [T in keyof Record]: (value: Record[T]) => A
 }
 
-export type Cases<Record, K extends keyof Record, A> = {
-  [T in K]: (value: Record[T]) => A
+export type MatchCases<Record, TaggedRecord, A> =
+  | Cases<Record, A>
+  | (Partial<Cases<Record, A>> &
+    {default: (variant: TaggedRecord[keyof TaggedRecord]) => A})
+
+export type Match<Record, TaggedRecord> = {
+  <A>(
+    cases: MatchCases<Record, TaggedRecord, A>
+  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
+  <A>(
+    variant: TaggedRecord[keyof TaggedRecord],
+    cases: MatchCases<Record, TaggedRecord, A>
+  ): A
 }
 
 export type MultiValueVariants<Record extends DictRecord, TagProp extends string> = {
@@ -40,7 +46,8 @@ export type SingleValueVariants<Record, TagProp extends string, ValProp extends 
   [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] }
 }
 
-export type DictRecord = { [tag: string]: { [field: string]: any } }
+// forbid usage of default property. reserved for pattern matching
+export type DictRecord = { [tag: string]: { [field: string]: any }} & {default?: never}
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -82,21 +89,29 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
   for (const expectedTag in record) {
     as[expectedTag] = match(
       {
-        [expectedTag]: (x: any) => x
-      },
-      actualTag => {
-        throw new Error(`Attempted to cast ${actualTag} as ${expectedTag}`)
+        [expectedTag]: (x: any) => x,
+        default: (val: any) => {
+          throw new Error(`Attempted to cast ${val[tagProp]} as ${expectedTag}`)
+        }
       }
     )
   }
 
-  function match(cases: any, fallback = (tag: string) => undefined): (variant: any) => any {
-    return (variant: any) => {
-      const k = variant[tagProp]
-      return k in cases
-        ? cases[k](valProp ? variant[valProp] : variant)
-        : fallback(k)
+  const evaluateMatch = (cases: any, variant: any): any => {
+    const k = variant[tagProp]
+    return k in cases
+      ? cases[k](valProp ? variant[valProp] : variant)
+      : cases.default(variant)
+  }
+
+  function match(...args: any[]): any {
+    if (args.length == 1) {
+      const [cases] = args;
+      return (variant: any) => evaluateMatch(cases, variant)
     }
+  
+    const [variant, cases] = args;
+    return evaluateMatch(cases, variant)
   }
 
   return Object.assign({

@@ -35,10 +35,26 @@ describe('merged', () => {
         x: ({ n }) => n + 9,
         y: ({ s }) => s.length,
       })(foo)).toBe(12)
-      expect(Foo.match(
-        { y: ({ s }) => s.length, },
-        () => 42,
-      )(foo)).toBe(42)
+      expect(Foo.match({
+        y: ({ s }) => s.length,
+        default: () => 42
+      })(foo)).toBe(42)
+    })
+
+    it('inline matching', () => {
+      expect(Foo.match(foo, {
+        x: ({ n }) => n + 9,
+        y: ({ s }) => s.length,
+      })).toBe(12)
+      expect(Foo.match(foo, {
+        y: ({ s }) => s.length,
+        default: () => 42
+      })).toBe(42)
+    })
+
+    it('default accepts initial object', () => {
+      expect(Foo.match(foo, { default: f => f })).toBe(foo)
+      expect(Foo.match({ default: f => f })(foo)).toBe(foo)
     })
 
     describe('name conflicts', () => {
@@ -85,10 +101,26 @@ describe('separate', () => {
       x: n => n + 9,
       y: s => s.length,
     })(foo)).toBe(12)
-    expect(Foo.match(
-      { y: s => s.length, },
-      () => 42,
-    )(foo)).toBe(42)
+    expect(Foo.match({
+      y: s => s.length,
+      default: () => 42,
+    })(foo)).toBe(42)
+  })
+
+  it('inline matching', () => {
+    expect(Foo.match(foo, {
+      x: n => n + 9,
+      y: s => s.length,
+    })).toBe(12)
+    expect(Foo.match(foo, {
+      y: s => s.length,
+      default: () => 42,
+    })).toBe(42)
+  })
+
+  it('default accepts initial object', () => {
+    expect(Foo.match(foo, { default: f => f })).toBe(foo)
+    expect(Foo.match({ default: f => f })(foo)).toBe(foo)
   })
 
   it('enumerable tags', () => {
