@@ -31,7 +31,7 @@
     // "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
     // "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
     //"forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
-    "suppressImplicitAnyIndexErrors": true,   /* Suppress --noImplicitAny errors for indexing objects lacking index signatures. */
+    //"suppressImplicitAnyIndexErrors": true,   /* Suppress --noImplicitAny errors for indexing objects lacking index signatures. */
 
     /* Module Resolution Options */
     "moduleResolution": "node"                /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
