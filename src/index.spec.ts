@@ -37,23 +37,11 @@ describe('merged', () => {
       })(foo)).toBe(12)
       expect(Foo.match({
         y: ({ s }) => s.length,
-        default: () => 42
+        default: _ => 42
       })(foo)).toBe(42)
     })
 
-    it('inline matching', () => {
-      expect(Foo.match(foo, {
-        x: ({ n }) => n + 9,
-        y: ({ s }) => s.length,
-      })).toBe(12)
-      expect(Foo.match(foo, {
-        y: ({ s }) => s.length,
-        default: () => 42
-      })).toBe(42)
-    })
-
     it('default accepts initial object', () => {
-      expect(Foo.match(foo, { default: f => f })).toBe(foo)
       expect(Foo.match({ default: f => f })(foo)).toBe(foo)
     })
 
@@ -107,19 +95,7 @@ describe('separate', () => {
     })(foo)).toBe(42)
   })
 
-  it('inline matching', () => {
-    expect(Foo.match(foo, {
-      x: n => n + 9,
-      y: s => s.length,
-    })).toBe(12)
-    expect(Foo.match(foo, {
-      y: s => s.length,
-      default: () => 42,
-    })).toBe(42)
-  })
-
   it('default accepts initial object', () => {
-    expect(Foo.match(foo, { default: f => f })).toBe(foo)
     expect(Foo.match({ default: f => f })(foo)).toBe(foo)
   })
 
@@ -133,5 +109,20 @@ describe('separate', () => {
     const bar = Foo.match(Bar)(foo)
     expect(bar.blum).toBe('x')
     expect(bar.blam).toBe(3)
+  })
+})
+
+describe('known issues', () => {
+  const Foo = unionize({
+    x: ofType<number>(),
+    y: ofType<string>(),
+  }, 'tag', 'data')
+
+  it('unfortunately accepts undefined for default', () => {
+    expect(() => Foo.match({ default: undefined })(Foo.x(3))).toThrow()
+  })
+
+  it('unfortunately accepts undefined for any props', () => {
+    expect(() => Foo.match({ x: undefined, y: undefined })(Foo.x(3))).toThrow()
   })
 })

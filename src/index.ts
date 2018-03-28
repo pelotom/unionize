@@ -4,7 +4,7 @@ export type Unionized<Record, TaggedRecord> = {
   _Union: TaggedRecord[keyof TaggedRecord]
   is: Predicates<TaggedRecord>
   as: Casts<Record, TaggedRecord>
-  match: Match<Record, TaggedRecord>
+  match: Match<Record, TaggedRecord[keyof TaggedRecord]>
 } & Creators<Record, TaggedRecord>
 
 export type Creators<Record, TaggedRecord> = {
@@ -23,19 +23,15 @@ export type Cases<Record, A> = {
   [T in keyof Record]: (value: Record[T]) => A
 }
 
-export type MatchCases<Record, TaggedRecord, A> =
+export type MatchCases<Record, Union, A> =
   | Cases<Record, A>
-  | (Partial<Cases<Record, A>> &
-    {default: (variant: TaggedRecord[keyof TaggedRecord]) => A})
+  | Partial<Cases<Record, A>> & {default: (variant: Union)=> A}
+    
 
-export type Match<Record, TaggedRecord> = {
+export type Match<Record, Union> = {
   <A>(
-    cases: MatchCases<Record, TaggedRecord, A>
-  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
-  <A>(
-    variant: TaggedRecord[keyof TaggedRecord],
-    cases: MatchCases<Record, TaggedRecord, A>
-  ): A
+    cases: MatchCases<Record, Union, A>
+  ): (variant: Union) => A
 }
 
 export type MultiValueVariants<Record extends DictRecord, TagProp extends string> = {
@@ -48,6 +44,7 @@ export type SingleValueVariants<Record, TagProp extends string, ValProp extends 
 
 // forbid usage of default property. reserved for pattern matching
 export type DictRecord = { [tag: string]: { [field: string]: any }} & {default?: never}
+export type DictValRecord = { [tag: string]: any } & {default?: never}
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -66,7 +63,7 @@ export function unionize<Record extends DictRecord, TagProp extends string>(
   record: Record,
   tagProp: TagProp,
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>
-export function unionize<Record, TagProp extends string, ValProp extends string>(
+export function unionize<Record extends DictValRecord, TagProp extends string, ValProp extends string>(
   record: Record,
   tagProp: TagProp,
   valProp: ValProp,
@@ -97,23 +94,13 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     )
   }
 
-  const evaluateMatch = (cases: any, variant: any): any => {
-    const k = variant[tagProp]
-    return k in cases
-      ? cases[k](valProp ? variant[valProp] : variant)
-      // here we can have '"undefined is not a function". Is it worth checking?
-      // it is <impossible> to get in ts but totally fine in js land
-      : cases.default(variant)
-  }
-
-  function match(...args: any[]): any {
-    if (args.length == 1) {
-      const [cases] = args;
-      return (variant: any) => evaluateMatch(cases, variant)
+  function match(cases: any): (variant: any) => any {
+    return (variant: any) => {
+      const k = variant[tagProp]
+      return k in cases
+        ? cases[k](valProp ? variant[valProp] : variant)
+        : cases.default(variant)
     }
-  
-    const [variant, cases] = args;
-    return evaluateMatch(cases, variant)
   }
 
   return Object.assign({
