@@ -24,7 +24,7 @@ export type Cases<Record, A> = {
 }
 
 export type MatchCases<Record, Union, A> =
-  | Cases<Record, A>
+  | Cases<Record, A> & NoDefaultProp
   | Partial<Cases<Record, A>> & {default: (variant: Union)=> A}
     
 
@@ -42,9 +42,11 @@ export type SingleValueVariants<Record, TagProp extends string, ValProp extends 
   [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] }
 }
 
+export type NoDefaultProp = { default?: never }
+
 // forbid usage of default property. reserved for pattern matching
-export type DictRecord = { [tag: string]: { [field: string]: any }} & {default?: never}
-export type DictValRecord = { [tag: string]: any } & {default?: never}
+export type DictRecord = { [tag: string]: { [field: string]: any }} & NoDefaultProp
+export type DictValRecord = { [tag: string]: any } & NoDefaultProp
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -97,8 +99,9 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
   function match(cases: any): (variant: any) => any {
     return (variant: any) => {
       const k = variant[tagProp]
-      return k in cases
-        ? cases[k](valProp ? variant[valProp] : variant)
+      const handler = cases[k];
+      return handler !== undefined
+        ? handler(valProp ? variant[valProp] : variant)
         : cases.default(variant)
     }
   }
