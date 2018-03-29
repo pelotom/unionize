@@ -1,0 +1,5 @@
+# Compiled test files
+lib/**/*.spec.*
+
+node_modules
+coverage
