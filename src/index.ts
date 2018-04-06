@@ -103,6 +103,7 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     is,
     as,
     match,
+    _Record: record,
   }, creators)
 }
 
