@@ -3,7 +3,7 @@ export type Unionized<Record, TaggedRecord> = {
   _Record: Record;
   _Union: TaggedRecord[keyof TaggedRecord]
   is: Predicates<TaggedRecord>
-  as: Casts<Record, TaggedRecord>
+  as: Casts<Record, TaggedRecord[keyof TaggedRecord]>
   match: Match<Record, TaggedRecord[keyof TaggedRecord]>
 } & Creators<Record, TaggedRecord>
 
@@ -15,38 +15,38 @@ export type Predicates<TaggedRecord> = {
   [T in keyof TaggedRecord]: (variant: TaggedRecord[keyof TaggedRecord]) => variant is TaggedRecord[T]
 }
 
-export type Casts<Record, TaggedRecord> = {
-  [T in keyof Record]: (variant: TaggedRecord[keyof TaggedRecord]) => Record[T]
+export type Casts<Record, Union> = {
+  [T in keyof Record]: (variant: Union) => Record[T]
 }
 
 export type Cases<Record, A> = {
   [T in keyof Record]: (value: Record[T]) => A
 }
 
-export type MatchCases<Record, Union, A> =
-  | Cases<Record, A> & NoDefaultProp
-  | Partial<Cases<Record, A>> & {default: (variant: Union)=> A}
-    
-
 export type Match<Record, Union> = {
   <A>(
-    cases: MatchCases<Record, Union, A>
+    cases:
+      | Cases<Record, A> & NoDefaultProp
+      | Partial<Cases<Record, A>> & { default: (variant: Union) => A }
   ): (variant: Union) => A
 }
 
-export type MultiValueVariants<Record extends DictRecord, TagProp extends string> = {
+export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
   [T in keyof Record]: { [_ in TagProp]: T } & Record[T]
 }
 
-export type SingleValueVariants<Record, TagProp extends string, ValProp extends string> = {
+export type SingleValueVariants<Record extends SingleValueRec, TagProp extends string, ValProp extends string> = {
   [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] }
 }
 
+// Forbid usage of default property; reserved for pattern matching.
 export type NoDefaultProp = { default?: never }
 
-// forbid usage of default property. reserved for pattern matching
-export type DictRecord = { [tag: string]: { [field: string]: any }} & NoDefaultProp
-export type DictValRecord = { [tag: string]: any } & NoDefaultProp
+export type SingleValueRec = NoDefaultRec<{} | null>
+export type MultiValueRec = NoDefaultRec<{ [tag: string]: any }>
+export type NoDefaultRec<Val> = {
+  [k: string]: Val
+} & NoDefaultProp
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -58,14 +58,14 @@ export type DictValRecord = { [tag: string]: any } & NoDefaultProp
  * @param valProp An optional custom name for the value property of the union. If not specified,
  * the value must be a dictionary type.
  */
-export function unionize<Record extends DictRecord>(
+export function unionize<Record extends MultiValueRec>(
   record: Record
 ): Unionized<Record, MultiValueVariants<Record, 'tag'>>
-export function unionize<Record extends DictRecord, TagProp extends string>(
+export function unionize<Record extends MultiValueRec, TagProp extends string>(
   record: Record,
   tagProp: TagProp,
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>
-export function unionize<Record extends DictValRecord, TagProp extends string, ValProp extends string>(
+export function unionize<Record extends SingleValueRec, TagProp extends string, ValProp extends string>(
   record: Record,
   tagProp: TagProp,
   valProp: ValProp,
