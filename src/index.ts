@@ -21,12 +21,13 @@ export type Casts<Record, Union> = { [T in keyof Record]: (variant: Union) => Re
 
 export type Cases<Record, A> = { [T in keyof Record]: (value: Record[T]) => A };
 
+export type MatchCases<Record, Union, A> =
+  | Cases<Record, A> & NoDefaultProp
+  | Partial<Cases<Record, A>> & { default: (variant: Union) => A };
+
 export type Match<Record, Union> = {
-  <A>(
-    cases:
-      | Cases<Record, A> & NoDefaultProp
-      | Partial<Cases<Record, A>> & { default: (variant: Union) => A },
-  ): (variant: Union) => A;
+  <A>(cases: MatchCases<Record, Union, A>): (variant: Union) => A;
+  <A>(variant: Union, cases: MatchCases<Record, Union, A>): A;
 };
 
 export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
@@ -86,6 +87,16 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     is[tag] = ((variant: any) => variant[tagProp] === tag) as any;
   }
 
+  function evalMatch(variant: any, cases: any): any {
+    const k = variant[tagProp];
+    const handler = cases[k];
+    return handler !== undefined
+      ? handler(valProp ? variant[valProp] : variant)
+      : cases.default(variant);
+  }
+
+  const match: ReverseCurriedFunc<any, any, any> = reverseCurry(evalMatch);
+
   const as = {} as Casts<Record, any>;
   for (const expectedTag in record) {
     as[expectedTag] = match({
@@ -94,16 +105,6 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
         throw new Error(`Attempted to cast ${val[tagProp]} as ${expectedTag}`);
       },
     });
-  }
-
-  function match(cases: any): (variant: any) => any {
-    return (variant: any) => {
-      const k = variant[tagProp];
-      const handler = cases[k];
-      return handler !== undefined
-        ? handler(valProp ? variant[valProp] : variant)
-        : cases.default(variant);
-    };
   }
 
   return Object.assign(
@@ -115,6 +116,25 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     },
     creators,
   );
+}
+
+type ReverseCurriedFunc<A1, A2, R> = {
+  (a1: A1, a2: A2): R;
+  (a2: A2): (a1: A1) => R;
+};
+
+function reverseCurry<A1, A2, R, F extends (a1: A1, a2: A2) => R>(
+  f: F,
+): ReverseCurriedFunc<A1, A2, R> {
+  const func = function reverseCurried(a1: A1 | A2, a2: A2 | undefined) {
+    if (arguments.length == 1) {
+      return (a: A1) => f(a, <A2>a1);
+    }
+
+    return f(<A1>a1, <A2>a2);
+  };
+
+  return (func as any) as ReverseCurriedFunc<A1, A2, R>;
 }
 
 /**
