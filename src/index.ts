@@ -4,7 +4,7 @@ export type Unionized<Record, TaggedRecord> = {
   _Union: TaggedRecord[keyof TaggedRecord]
   is: Predicates<TaggedRecord>
   as: Casts<Record, TaggedRecord>
-  match: Match<Record, TaggedRecord>
+  match: Match<Record, TaggedRecord[keyof TaggedRecord]>
 } & Creators<Record, TaggedRecord>
 
 export type Creators<Record, TaggedRecord> = {
@@ -19,17 +19,19 @@ export type Casts<Record, TaggedRecord> = {
   [T in keyof Record]: (variant: TaggedRecord[keyof TaggedRecord]) => Record[T]
 }
 
-export type Match<Record, TaggedRecord> = {
-  <A>(
-    cases: Cases<Record, keyof Record, A>
-  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
-  <K extends keyof Record, A>(
-    cases: Cases<Record, K, A>, fallback: (tag: keyof Record) => A
-  ): (variant: TaggedRecord[keyof TaggedRecord]) => A
+export type Cases<Record, A> = {
+  [T in keyof Record]: (value: Record[T]) => A
 }
 
-export type Cases<Record, K extends keyof Record, A> = {
-  [T in K]: (value: Record[T]) => A
+export type MatchCases<Record, Union, A> =
+  | Cases<Record, A> & NoDefaultProp
+  | Partial<Cases<Record, A>> & {default: (variant: Union)=> A}
+    
+
+export type Match<Record, Union> = {
+  <A>(
+    cases: MatchCases<Record, Union, A>
+  ): (variant: Union) => A
 }
 
 export type MultiValueVariants<Record extends DictRecord, TagProp extends string> = {
@@ -40,7 +42,11 @@ export type SingleValueVariants<Record, TagProp extends string, ValProp extends 
   [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] }
 }
 
-export type DictRecord = { [tag: string]: { [field: string]: any } }
+export type NoDefaultProp = { default?: never }
+
+// forbid usage of default property. reserved for pattern matching
+export type DictRecord = { [tag: string]: { [field: string]: any }} & NoDefaultProp
+export type DictValRecord = { [tag: string]: any } & NoDefaultProp
 
 /**
  * Create a tagged union from a record mapping tags to value types, along with associated
@@ -59,7 +65,7 @@ export function unionize<Record extends DictRecord, TagProp extends string>(
   record: Record,
   tagProp: TagProp,
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>
-export function unionize<Record, TagProp extends string, ValProp extends string>(
+export function unionize<Record extends DictValRecord, TagProp extends string, ValProp extends string>(
   record: Record,
   tagProp: TagProp,
   valProp: ValProp,
@@ -82,20 +88,21 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
   for (const expectedTag in record) {
     as[expectedTag] = match(
       {
-        [expectedTag]: (x: any) => x
-      },
-      actualTag => {
-        throw new Error(`Attempted to cast ${actualTag} as ${expectedTag}`)
+        [expectedTag]: (x: any) => x,
+        default: (val: any) => {
+          throw new Error(`Attempted to cast ${val[tagProp]} as ${expectedTag}`)
+        }
       }
     )
   }
 
-  function match(cases: any, fallback = (tag: string) => undefined): (variant: any) => any {
+  function match(cases: any): (variant: any) => any {
     return (variant: any) => {
       const k = variant[tagProp]
-      return k in cases
-        ? cases[k](valProp ? variant[valProp] : variant)
-        : fallback(k)
+      const handler = cases[k];
+      return handler !== undefined
+        ? handler(valProp ? variant[valProp] : variant)
+        : cases.default(variant)
     }
   }
 
