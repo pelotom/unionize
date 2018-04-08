@@ -66,14 +66,14 @@ export function unionize<
   ValProp extends string
 >(
   record: Record,
-  config: { valProp: ValProp; tagProp?: TagProp },
+  config: { value: ValProp; tag?: TagProp },
 ): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>;
 export function unionize<Record extends MultiValueRec, TagProp extends string>(
   record: Record,
-  config?: { tagProp: TagProp },
+  config?: { tag: TagProp },
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>;
-export function unionize<Record>(record: Record, config?: { valProp?: string; tagProp?: string }) {
-  const { valProp = undefined, tagProp = 'tag' } = config || {};
+export function unionize<Record>(record: Record, config?: { value?: string; tag?: string }) {
+  const { value: valProp = undefined, tag: tagProp = 'tag' } = config || {};
 
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {

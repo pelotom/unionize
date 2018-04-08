@@ -80,7 +80,7 @@ describe('merged', () => {
         {
           foo: ofType<{ x: number }>(),
         },
-        { tagProp: 'conflict' },
+        { tag: 'conflict' },
       );
       const input = { x: 42, conflict: 'oops' };
       expect(T.foo(input).conflict).toBe('foo');
@@ -94,7 +94,7 @@ describe('separate', () => {
       x: ofType<number>(),
       y: ofType<string>(),
     },
-    { tagProp: 'flim', valProp: 'flam' },
+    { tag: 'flim', value: 'flam' },
   );
 
   let foo: typeof Foo._Union;
@@ -172,7 +172,7 @@ describe('separate', () => {
         y: ofType<string>(),
         z: ofType<boolean>(),
       },
-      { tagProp: 'blum', valProp: 'blam' },
+      { tag: 'blum', value: 'blam' },
     );
 
     const bar = Foo.match(Bar)(foo);
@@ -187,7 +187,7 @@ describe('spreads', () => {
       fred: ofType<string>(),
       wilma: ofType<string>(),
     },
-    { tagProp: 'name', valProp: 'catchphrase' },
+    { tag: 'name', value: 'catchphrase' },
   );
 
   const Flintstones = unionize(
@@ -195,7 +195,7 @@ describe('spreads', () => {
       pebbles: ofType<string>(),
       ...Parents._Record,
     },
-    { tagProp: 'name', valProp: 'catchphrase' },
+    { tag: 'name', value: 'catchphrase' },
   );
 
   let fred: typeof Flintstones._Union;
@@ -255,10 +255,10 @@ describe('spreads', () => {
 
   // note: TagProp and ValProp of spreaded _Record has no signficance on final record
   it('creation with different TagProp and ValProp', () => {
-    const foo = unionize({ a: ofType<{ x: number }>() }, { tagProp: 'type', valProp: 'payload' });
+    const foo = unionize({ a: ofType<{ x: number }>() }, { tag: 'type', value: 'payload' });
     const bar = unionize(
       { b: ofType<{ y: string }>(), ...foo._Record },
-      { tagProp: 'schmype', valProp: 'schmayload' },
+      { tag: 'schmype', value: 'schmayload' },
     );
 
     expect(bar.a({ x: 1 })).toEqual({
@@ -270,5 +270,12 @@ describe('spreads', () => {
       schmype: 'b',
       schmayload: { y: 'qwertz' },
     });
+  });
+});
+
+describe('config object', () => {
+  it('can have only value prop', () => {
+    const A = unionize({ a: ofType<number>() }, { value: 'val' });
+    expect(A.a(1)).toEqual({ tag: 'a', val: 1 });
   });
 });
