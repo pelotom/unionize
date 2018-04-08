@@ -59,23 +59,22 @@ export type NoDefaultRec<Val> = {
  * @param valProp An optional custom name for the value property of the union. If not specified,
  * the value must be a dictionary type.
  */
-export function unionize<Record extends MultiValueRec>(
-  record: Record,
-): Unionized<Record, MultiValueVariants<Record, 'tag'>>;
-export function unionize<Record extends MultiValueRec, TagProp extends string>(
-  record: Record,
-  tagProp: TagProp,
-): Unionized<Record, MultiValueVariants<Record, TagProp>>;
+
 export function unionize<
   Record extends SingleValueRec,
   TagProp extends string,
   ValProp extends string
 >(
   record: Record,
-  tagProp: TagProp,
-  valProp: ValProp,
+  config: { valProp: ValProp; tagProp?: TagProp },
 ): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>;
-export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: string) {
+export function unionize<Record extends MultiValueRec, TagProp extends string>(
+  record: Record,
+  config?: { tagProp: TagProp },
+): Unionized<Record, MultiValueVariants<Record, TagProp>>;
+export function unionize<Record>(record: Record, config?: { valProp?: string; tagProp?: string }) {
+  const { valProp = undefined, tagProp = 'tag' } = config || {};
+
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {
     creators[tag] = (value: any) =>

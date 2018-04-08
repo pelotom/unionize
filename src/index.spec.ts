@@ -80,7 +80,7 @@ describe('merged', () => {
         {
           foo: ofType<{ x: number }>(),
         },
-        'conflict',
+        { tagProp: 'conflict' },
       );
       const input = { x: 42, conflict: 'oops' };
       expect(T.foo(input).conflict).toBe('foo');
@@ -94,8 +94,7 @@ describe('separate', () => {
       x: ofType<number>(),
       y: ofType<string>(),
     },
-    'flim',
-    'flam',
+    { tagProp: 'flim', valProp: 'flam' },
   );
 
   let foo: typeof Foo._Union;
@@ -173,8 +172,7 @@ describe('separate', () => {
         y: ofType<string>(),
         z: ofType<boolean>(),
       },
-      'blum',
-      'blam',
+      { tagProp: 'blum', valProp: 'blam' },
     );
 
     const bar = Foo.match(Bar)(foo);
@@ -189,8 +187,7 @@ describe('spreads', () => {
       fred: ofType<string>(),
       wilma: ofType<string>(),
     },
-    'name',
-    'catchphrase',
+    { tagProp: 'name', valProp: 'catchphrase' },
   );
 
   const Flintstones = unionize(
@@ -198,8 +195,7 @@ describe('spreads', () => {
       pebbles: ofType<string>(),
       ...Parents._Record,
     },
-    'name',
-    'catchphrase',
+    { tagProp: 'name', valProp: 'catchphrase' },
   );
 
   let fred: typeof Flintstones._Union;
@@ -259,8 +255,11 @@ describe('spreads', () => {
 
   // note: TagProp and ValProp of spreaded _Record has no signficance on final record
   it('creation with different TagProp and ValProp', () => {
-    const foo = unionize({ a: ofType<{ x: number }>() }, 'type', 'payload');
-    const bar = unionize({ b: ofType<{ y: string }>(), ...foo._Record }, 'schmype', 'schmayload');
+    const foo = unionize({ a: ofType<{ x: number }>() }, { tagProp: 'type', valProp: 'payload' });
+    const bar = unionize(
+      { b: ofType<{ y: string }>(), ...foo._Record },
+      { tagProp: 'schmype', valProp: 'schmayload' },
+    );
 
     expect(bar.a({ x: 1 })).toEqual({
       schmype: 'a',
