@@ -73,13 +73,13 @@ export type NoDefaultRec<Val> = {
 
 export function unionize<
   Record extends SingleValueRec,
-  TagProp extends string,
-  ValProp extends string
+  ValProp extends string,
+  TagProp extends string = 'tag'
 >(
   record: Record,
   config: { value: ValProp; tag?: TagProp },
 ): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>;
-export function unionize<Record extends MultiValueRec, TagProp extends string>(
+export function unionize<Record extends MultiValueRec, TagProp extends string = 'tag'>(
   record: Record,
   config?: { tag: TagProp },
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>;
