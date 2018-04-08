@@ -44,6 +44,21 @@ describe('merged', () => {
     ).toBe(42);
   });
 
+  it('inline matching', () => {
+    expect(
+      Foo.match(foo, {
+        x: ({ n }) => n + 9,
+        y: ({ s }) => s.length,
+      }),
+    ).toBe(12);
+    expect(
+      Foo.match(foo, {
+        y: ({ s }) => s.length,
+        default: _ => 42,
+      }),
+    ).toBe(42);
+  });
+
   it('accepts undefined props with default for matching', () => {
     expect(
       Foo.match({
@@ -56,6 +71,7 @@ describe('merged', () => {
 
   it('default accepts initial object for matching', () => {
     expect(Foo.match({ default: f => f })(foo)).toBe(foo);
+    expect(Foo.match(foo, { default: f => f })).toBe(foo);
   });
 
   describe('name conflicts', () => {
@@ -119,6 +135,22 @@ describe('separate', () => {
     ).toBe(42);
   });
 
+  it('inline matching', () => {
+    expect(
+      Foo.match(foo, {
+        x: n => n + 9,
+        y: s => s.length,
+      }),
+    ).toBe(12);
+
+    expect(
+      Foo.match(foo, {
+        y: s => s.length,
+        default: _ => 42,
+      }),
+    ).toBe(42);
+  });
+
   it('accepts undefined props with default for matching', () => {
     expect(
       Foo.match({
@@ -131,6 +163,7 @@ describe('separate', () => {
 
   it('default accepts initial object for matching', () => {
     expect(Foo.match({ default: f => f })(foo)).toBe(foo);
+    expect(Foo.match(foo, { default: f => f })).toBe(foo);
   });
 
   it('enumerable tags', () => {

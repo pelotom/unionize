@@ -21,12 +21,13 @@ export type Casts<Record, Union> = { [T in keyof Record]: (variant: Union) => Re
 
 export type Cases<Record, A> = { [T in keyof Record]: (value: Record[T]) => A };
 
+export type MatchCases<Record, Union, A> =
+  | Cases<Record, A> & NoDefaultProp
+  | Partial<Cases<Record, A>> & { default: (variant: Union) => A };
+
 export type Match<Record, Union> = {
-  <A>(
-    cases:
-      | Cases<Record, A> & NoDefaultProp
-      | Partial<Cases<Record, A>> & { default: (variant: Union) => A },
-  ): (variant: Union) => A;
+  <A>(cases: MatchCases<Record, Union, A>): (variant: Union) => A;
+  <A>(variant: Union, cases: MatchCases<Record, Union, A>): A;
 };
 
 export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
@@ -86,6 +87,17 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
     is[tag] = ((variant: any) => variant[tagProp] === tag) as any;
   }
 
+  function evalMatch(variant: any, cases: any): any {
+    const k = variant[tagProp];
+    const handler = cases[k];
+    return handler !== undefined
+      ? handler(valProp ? variant[valProp] : variant)
+      : cases.default(variant);
+  }
+
+  const match = (first: any, second?: any) =>
+    second ? evalMatch(first, second) : (variant: any) => evalMatch(variant, first);
+
   const as = {} as Casts<Record, any>;
   for (const expectedTag in record) {
     as[expectedTag] = match({
@@ -94,16 +106,6 @@ export function unionize<Record>(record: Record, tagProp = 'tag', valProp?: stri
         throw new Error(`Attempted to cast ${val[tagProp]} as ${expectedTag}`);
       },
     });
-  }
-
-  function match(cases: any): (variant: any) => any {
-    return (variant: any) => {
-      const k = variant[tagProp];
-      const handler = cases[k];
-      return handler !== undefined
-        ? handler(valProp ? variant[valProp] : variant)
-        : cases.default(variant);
-    };
   }
 
   return Object.assign(
