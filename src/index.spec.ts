@@ -279,3 +279,54 @@ describe('config object', () => {
     expect(A.a(1)).toEqual({ tag: 'a', val: 1 });
   });
 });
+
+describe('transform with value prop', () => {
+  const Payload = unionize(
+    {
+      num: ofType<number>(),
+      str: ofType<string>(),
+    },
+    { value: 'payload' },
+  );
+
+  it('skips unmet cases', () => {
+    const num = Payload.num(1);
+    expect(Payload.transform(num, { str: s => Payload.num(s.length) })).toBe(num);
+    expect(Payload.transform({ str: s => Payload.num(s.length) })(num)).toBe(num);
+  });
+
+  it('transforms with met cases', () => {
+    const str = Payload.str('s');
+    const expected = Payload.num(1);
+    expect(Payload.transform(str, { str: s => Payload.num(s.length) })).toEqual(expected);
+    expect(Payload.transform({ str: s => Payload.num(s.length) })(str)).toEqual(expected);
+  });
+
+  it('technically we allow an empty object for cases', () => {
+    const str = Payload.str('s');
+    expect(Payload.transform(str, {})).toBe(str);
+    expect(Payload.transform({})(str)).toBe(str);
+  });
+});
+
+describe('transform without value prop', () => {
+  const Data = unionize({
+    num: ofType<{ n: number }>(),
+    str: ofType<{ s: string }>(),
+  });
+
+  it('Just all at once', () => {
+    const num = Data.num({ n: 1 });
+    const str = Data.str({ s: 's' });
+
+    const strLen = ({ s }: { s: string }) => Data.num({ n: s.length });
+
+    // unmet
+    expect(Data.transform(num, { str: strLen })).toBe(num);
+    expect(Data.transform({ str: strLen })(num)).toBe(num);
+
+    //met cases
+    expect(Data.transform(str, { str: strLen })).toEqual(num);
+    expect(Data.transform({ str: strLen })(str)).toEqual(num);
+  });
+});

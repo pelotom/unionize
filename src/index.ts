@@ -5,6 +5,7 @@ export type Unionized<Record, TaggedRecord> = {
   is: Predicates<TaggedRecord>;
   as: Casts<Record, TaggedRecord[keyof TaggedRecord]>;
   match: Match<Record, TaggedRecord[keyof TaggedRecord]>;
+  transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
 } & Creators<Record, TaggedRecord>;
 
 export type Creators<Record, TaggedRecord> = {
@@ -28,6 +29,15 @@ export type MatchCases<Record, Union, A> =
 export type Match<Record, Union> = {
   <A>(cases: MatchCases<Record, Union, A>): (variant: Union) => A;
   <A>(variant: Union, cases: MatchCases<Record, Union, A>): A;
+};
+
+export type TransformCases<Record, Union> = Partial<
+  { [T in keyof Record]: (value: Record[T]) => Union }
+>;
+
+export type Transform<Record, Union> = {
+  (cases: TransformCases<Record, Union>): (variant: Union) => Union;
+  (variant: Union, cases: TransformCases<Record, Union>): Union;
 };
 
 export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
@@ -55,25 +65,28 @@ export type NoDefaultRec<Val> = {
  *
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
- * @param tagProp An optional custom name for the tag property of the union.
- * @param valProp An optional custom name for the value property of the union. If not specified,
+ * @param config An optional config object. By default tag='tag' and value is merged into object itself
+ * @param config.tag An optional custom name for the tag property of the union.
+ * @param config.value An optional custom name for the value property of the union. If not specified,
  * the value must be a dictionary type.
  */
 
 export function unionize<
   Record extends SingleValueRec,
-  TagProp extends string,
-  ValProp extends string
+  ValProp extends string,
+  TagProp extends string = 'tag'
 >(
   record: Record,
   config: { value: ValProp; tag?: TagProp },
 ): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>;
-export function unionize<Record extends MultiValueRec, TagProp extends string>(
+export function unionize<Record extends MultiValueRec, TagProp extends string = 'tag'>(
   record: Record,
   config?: { tag: TagProp },
 ): Unionized<Record, MultiValueVariants<Record, TagProp>>;
 export function unionize<Record>(record: Record, config?: { value?: string; tag?: string }) {
   const { value: valProp = undefined, tag: tagProp = 'tag' } = config || {};
+
+  const getVal = (variant: any) => (valProp ? variant[valProp] : variant);
 
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {
@@ -89,9 +102,7 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
   function evalMatch(variant: any, cases: any): any {
     const k = variant[tagProp];
     const handler = cases[k];
-    return handler !== undefined
-      ? handler(valProp ? variant[valProp] : variant)
-      : cases.default(variant);
+    return handler !== undefined ? handler(getVal(variant)) : cases.default(variant);
   }
 
   const match = (first: any, second?: any) =>
@@ -107,11 +118,20 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
     });
   }
 
+  const evalTransform = (variant: any, cases: any): any => {
+    const k: keyof Record = variant[tagProp];
+    return k in cases ? cases[k](getVal(variant)) : variant;
+  };
+
+  const transform = (first: any, second?: any) =>
+    second ? evalTransform(first, second) : (variant: any) => evalTransform(variant, first);
+
   return Object.assign(
     {
       is,
       as,
       match,
+      transform,
       _Record: record,
     },
     creators,
