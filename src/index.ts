@@ -86,8 +86,6 @@ export function unionize<Record extends MultiValueRec, TagProp extends string = 
 export function unionize<Record>(record: Record, config?: { value?: string; tag?: string }) {
   const { value: valProp = undefined, tag: tagProp = 'tag' } = config || {};
 
-  const getVal = (variant: any) => (valProp ? variant[valProp] : variant);
-
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {
     creators[tag] = (value: any) =>
@@ -99,14 +97,19 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
     is[tag] = ((variant: any) => variant[tagProp] === tag) as any;
   }
 
-  function evalMatch(variant: any, cases: any): any {
-    const k = variant[tagProp];
-    const handler = cases[k];
-    return handler !== undefined ? handler(getVal(variant)) : cases.default(variant);
+  function evalMatch(variant: any, cases: any, defaultCase = cases.default): any {
+    const handler = cases[variant[tagProp]];
+    return handler ? handler(valProp ? variant[valProp] : variant) : defaultCase(variant);
   }
 
   const match = (first: any, second?: any) =>
     second ? evalMatch(first, second) : (variant: any) => evalMatch(variant, first);
+
+  const identity = <A>(x: A) => x;
+  const transform = (first: any, second?: any) =>
+    second
+      ? evalMatch(first, second, identity)
+      : (variant: any) => evalMatch(variant, first, identity);
 
   const as = {} as Casts<Record, any>;
   for (const expectedTag in record) {
@@ -117,14 +120,6 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
       },
     });
   }
-
-  const evalTransform = (variant: any, cases: any): any => {
-    const k: keyof Record = variant[tagProp];
-    return k in cases ? cases[k](getVal(variant)) : variant;
-  };
-
-  const transform = (first: any, second?: any) =>
-    second ? evalTransform(first, second) : (variant: any) => evalTransform(variant, first);
 
   return Object.assign(
     {
