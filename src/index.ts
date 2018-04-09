@@ -5,7 +5,7 @@ export type Unionized<Record, TaggedRecord> = {
   is: Predicates<TaggedRecord>;
   as: Casts<Record, TaggedRecord[keyof TaggedRecord]>;
   match: Match<Record, TaggedRecord[keyof TaggedRecord]>;
-  update: Update<Record, TaggedRecord[keyof TaggedRecord]>;
+  transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
 } & Creators<Record, TaggedRecord>;
 
 export type Creators<Record, TaggedRecord> = {
@@ -31,13 +31,13 @@ export type Match<Record, Union> = {
   <A>(variant: Union, cases: MatchCases<Record, Union, A>): A;
 };
 
-export type UpdateCases<Record> = Partial<
-  { [T in keyof Record]: (value: Record[T]) => Partial<Record[T]> }
+export type TransformCases<Record, Union> = Partial<
+  { [T in keyof Record]: (value: Record[T]) => Union }
 >;
 
-export type Update<Record, Union> = {
-  (cases: UpdateCases<Record>): (variant: Union) => Union;
-  (variant: Union, cases: UpdateCases<Record>): Union;
+export type Transform<Record, Union> = {
+  (cases: TransformCases<Record, Union>): (variant: Union) => Union;
+  (variant: Union, cases: TransformCases<Record, Union>): Union;
 };
 
 export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
@@ -65,7 +65,7 @@ export type NoDefaultRec<Val> = {
  *
  * @param record A record mapping tags to value types. The actual values of the record don't
  * matter; they're just used in the types of the resulting tagged union. See `ofType`.
- * @param config An optional config object. By default tag='tag' and payload is merged into object itself
+ * @param config An optional config object. By default tag='tag' and value is merged into object itself
  * @param config.tag An optional custom name for the tag property of the union.
  * @param config.value An optional custom name for the value property of the union. If not specified,
  * the value must be a dictionary type.
@@ -86,7 +86,7 @@ export function unionize<Record extends MultiValueRec, TagProp extends string = 
 export function unionize<Record>(record: Record, config?: { value?: string; tag?: string }) {
   const { value: valProp = undefined, tag: tagProp = 'tag' } = config || {};
 
-  const payload = (variant: any) => (valProp ? variant[valProp] : variant);
+  const getVal = (variant: any) => (valProp ? variant[valProp] : variant);
 
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {
@@ -102,7 +102,7 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
   function evalMatch(variant: any, cases: any): any {
     const k = variant[tagProp];
     const handler = cases[k];
-    return handler !== undefined ? handler(payload(variant)) : cases.default(variant);
+    return handler !== undefined ? handler(getVal(variant)) : cases.default(variant);
   }
 
   const match = (first: any, second?: any) =>
@@ -118,34 +118,25 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
     });
   }
 
-  const evalUpd = (variant: any, cases: any): any => {
+  const evalTransform = (variant: any, cases: any): any => {
     const k: keyof Record = variant[tagProp];
-    return k in cases
-      ? creators[k](immutableUpd(payload(variant), cases[k](payload(variant))))
-      : variant;
+    return k in cases ? cases[k](getVal(variant)) : variant;
   };
 
-  const update = (first: any, second?: any) =>
-    second ? evalUpd(first, second) : (variant: any) => evalUpd(variant, first);
+  const transform = (first: any, second?: any) =>
+    second ? evalTransform(first, second) : (variant: any) => evalTransform(variant, first);
 
   return Object.assign(
     {
       is,
       as,
       match,
-      update,
+      transform,
       _Record: record,
     },
     creators,
   );
 }
-
-// Should we merge objects or just replace them?
-// was unable to find a better solution to that
-const objType = Object.prototype.toString.call({});
-const isObject = (maybeObj: any) => Object.prototype.toString.call(maybeObj) === objType;
-const immutableUpd = (old: any, updated: any) =>
-  isObject(old) ? Object.assign({}, old, updated) : updated;
 
 /**
  * Creates a pseudo-witness of a given type. That is, it pretends to return a value of

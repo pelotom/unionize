@@ -280,8 +280,8 @@ describe('config object', () => {
   });
 });
 
-describe('update suite', () => {
-  const Paylod = unionize(
+describe('transform with value prop', () => {
+  const Payload = unionize(
     {
       num: ofType<number>(),
       str: ofType<string>(),
@@ -290,37 +290,43 @@ describe('update suite', () => {
   );
 
   it('skips unmet cases', () => {
-    const num = Paylod.num(1);
-    expect(Paylod.update(num, { str: s => s + '?' })).toBe(num);
-    expect(Paylod.update({ str: s => s + '??' })(num)).toBe(num);
+    const num = Payload.num(1);
+    expect(Payload.transform(num, { str: s => Payload.num(s.length) })).toBe(num);
+    expect(Payload.transform({ str: s => Payload.num(s.length) })(num)).toBe(num);
   });
 
-  it('updates with met cases', () => {
-    const str = Paylod.str('hi');
-    const exclaim = (s: string) => s + '!';
-    const exclaimed = Paylod.str('hi!');
-    expect(Paylod.update({ str: exclaim })(str)).toEqual(exclaimed);
-    expect(Paylod.update(str, { str: exclaim })).toEqual(exclaimed);
+  it('transforms with met cases', () => {
+    const str = Payload.str('s');
+    const expected = Payload.num(1);
+    expect(Payload.transform(str, { str: s => Payload.num(s.length) })).toEqual(expected);
+    expect(Payload.transform({ str: s => Payload.num(s.length) })(str)).toEqual(expected);
   });
 
-  it('updates immutably by partial state', () => {
-    const Data = unionize({
-      A: ofType<{ a: 'not used' }>(),
-      BC: ofType<{ b: number; c: string }>(),
-    });
+  it('technically we allow an empty object for cases', () => {
+    const str = Payload.str('s');
+    expect(Payload.transform(str, {})).toBe(str);
+    expect(Payload.transform({})(str)).toBe(str);
+  });
+});
 
-    const bc = Object.freeze(Data.BC({ b: 1, c: 'hi' }));
-    const expected = Data.BC({ b: 1, c: 'hi!' });
-    expect(Data.update({ BC: ({ c }) => ({ c: c + '!' }) })(bc)).toEqual(expected);
-    expect(Data.update(bc, { BC: ({ c }) => ({ c: c + '!' }) })).toEqual(expected);
+describe('transform without value prop', () => {
+  const Data = unionize({
+    num: ofType<{ n: number }>(),
+    str: ofType<{ s: string }>(),
   });
 
-  it('still updated even with value prop', () => {
-    const Data = unionize({ BC: ofType<{ b: number; c: string }>() }, { value: 'payload' });
+  it('Just all at once', () => {
+    const num = Data.num({ n: 1 });
+    const str = Data.str({ s: 's' });
 
-    const bc = Object.freeze(Data.BC({ b: 1, c: 'hi' }));
-    const expected = Data.BC({ b: 1, c: 'hi!' });
-    expect(Data.update({ BC: ({ c }) => ({ c: c + '!' }) })(bc)).toEqual(expected);
-    expect(Data.update(bc, { BC: ({ c }) => ({ c: c + '!' }) })).toEqual(expected);
+    const strLen = ({ s }: { s: string }) => Data.num({ n: s.length });
+
+    // unmet
+    expect(Data.transform(num, { str: strLen })).toBe(num);
+    expect(Data.transform({ str: strLen })(num)).toBe(num);
+
+    //met cases
+    expect(Data.transform(str, { str: strLen })).toEqual(num);
+    expect(Data.transform({ str: strLen })(str)).toEqual(num);
   });
 });
