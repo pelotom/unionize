@@ -120,7 +120,7 @@ const toggled = Light.transform(on, {
 
 Overall, it is pretty similar to `match` but reduces boilerplate. Also note that `transform` requires you to return an object of the same type.
 
-#### Breaking changes from 1.1
+#### Breaking changes from 1.0.1
 **config object**
 
 Now `unionize` accepts an optional config object instead of two additional arguments.
