@@ -73,7 +73,7 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
 const getIdFromAction = Action.match({
   ADD_TODO: ({ id}) => id,
   TOGGLE_TODO: ({ id }) => id,
-  default: a => `${a.tag} doesn't have id`
+  default: a => undefined,
 })
 
 const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' })
