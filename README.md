@@ -132,7 +132,7 @@ unionize({...}, 'myTag');
 
 // after
 unionize({...}, { tag:'myTag', value:'myPayloadProp' });
-unionize({...}, { tag:'myTag', value:'myPayloadProp' });
+unionize({...}, { tag:'myTag' });
 unionize({...}, { value:'myPayloadProp' }); // <-- previously not possible
 ```
 
