@@ -123,32 +123,37 @@ Overall, it is pretty similar to `match` but reduces boilerplate. Also note that
 #### Breaking changes from 1.1
 **config object**
 
-Now unionize accepts an optional config object istead of two additional arguments.
+Now `unionize` accepts an optional config object instead of two additional arguments.
+
 ```ts
-//before
+// before
 unionize({...}, 'myTag', 'myPayloadProp');
+unionize({...}, 'myTag');
 
-//now
-unionize({...}, {tag:'myTag', value:'myPayloadProp'});
+// after
+unionize({...}, { tag:'myTag', value:'myPayloadProp' });
+unionize({...}, { tag:'myTag', value:'myPayloadProp' });
+unionize({...}, { value:'myPayloadProp' }); // <-- previously not possible
 ```
 
-**default case for match**
-```ts
-//before
-Light.match({On: () => 'is on'}, () =>'is off')
+**`match`**
 
-//now
-Light.match({On: () => 'is on', default: () =>'is off'})
-```
-
-That allowed to introduce inline matching
+Whereas previously `match` was curried, now it can alternatively accept the object to match as a first argument. Additionally, the default case is now expressed as just another property in the cases object.
 
 ```ts
-const light = Light.Off({});
+// before
+Light.match({
+  On: () => 'is on'
+}, () => 'is off'
+)(light);
 
-//before you had to pass an object using ().
-Light.match({On: () => 'is on'}, () =>'is off')(light);
-
-//now
-Light.match(light, {On: () => 'is on', default: () =>'is off'})
+// after
+Light.match({
+  On: () => 'is on',
+  default: () =>'is off'
+})(light);
+Light.match(light, {
+  On: () => 'is on',
+  default: () => 'is off',
+});
 ```
