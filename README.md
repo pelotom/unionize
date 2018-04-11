@@ -18,8 +18,14 @@ import { unionize, ofType } from 'unionize'
 const Action = unionize({
   ADD_TODO:                ofType<{ id: string; text: string }>(),
   SET_VISIBILITY_FILTER:   ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
-  TOGGLE_TODO:             ofType<{ id: string }>()},
-  { tag:'type', value:'payload'}); // optionally override tag and value property names
+  TOGGLE_TODO:             ofType<{ id: string }>()
+},
+  // optionally override tag and/or value property names
+  {
+    tag:'type',
+    value:'payload',
+  }
+);
 ```
 
 Extract the inferred tagged union:
@@ -52,12 +58,12 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
     // handle cases as pure functions instead of switch statements
     ADD_TODO: ({ id, text }) => [...state, { id, text, completed: false }],
     TOGGLE_TODO: ({ id }) =>
-      state.map(
-        todo =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      state.map(todo => todo.id === id
+        ? { ...todo, completed: !todo.completed }
+        : todo
       ),
     // handles the rest; if not provided, cases must be exhaustive 
-    default: a => state // a===action. Useful for curried version. 
+    default: a => state // a === action. Useful for curried version
   });
 ```
 
@@ -128,10 +134,10 @@ unionize({...}, {tag:'myTag', value:'myPayloadProp'});
 **default case for match**
 ```ts
 //before
-Light.match({On: ()=> 'is on'}, ()=>'is off')
+Light.match({On: () => 'is on'}, () =>'is off')
 
 //now
-Light.match({On: ()=> 'is on', default: ()=>'is off'})
+Light.match({On: () => 'is on', default: () =>'is off'})
 ```
 
 That allowed to introduce inline matching
@@ -140,8 +146,8 @@ That allowed to introduce inline matching
 const light = Light.Off({});
 
 //before you had to pass an object using ().
-Light.match({On: ()=> 'is on'}, ()=>'is off')(light);
+Light.match({On: () => 'is on'}, () =>'is off')(light);
 
 //now
-Light.match(light, {On: ()=> 'is on', default: ()=>'is off'})
+Light.match(light, {On: () => 'is on', default: () =>'is off'})
 ```
