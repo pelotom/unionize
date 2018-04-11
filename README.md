@@ -67,7 +67,7 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
   });
 ```
 
- `action` can be omitted. In that case the result of match is a function
+`action` can be omitted; in that case the result of match is a function:
 
 ```ts
 const getIdFromAction = Action.match({
