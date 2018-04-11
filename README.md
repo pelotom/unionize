@@ -96,14 +96,12 @@ const { id, text } = Action.as.ADD_TODO(someAction) // throws if someAction is n
 ```
 
 #### Transform expressions
-`unionize` is great at modeling redux states as well.
+
+`transform` is a shorthand alternative to `match` for when you are converting from the union type to itself, and only want to handle a subset of the cases, leaving the rest unchanged:
 
 ```ts
 const Light = unionize({ On: ofType<{ percentage: number }>(), Off: {} });
-```
-`transform` tries to find a match to produce a new state. Otherwise, simply returns the original object.
 
-```ts
 const turnOn = Light.transform({ Off: () => Light.On({ percentage: 100 }) });
 const dim = Light.transform({ On: prev => Light.On({ percentage: prev.percentage / 2 }) });
 
@@ -117,8 +115,6 @@ const toggled = Light.transform(on, {
   Off: () => Light.On({ percentage: 50 }),
 });
 ```
-
-Overall, it is pretty similar to `match` but reduces boilerplate. Also note that `transform` requires you to return an object of the same type.
 
 #### Breaking changes from 1.0.1
 **config object**
