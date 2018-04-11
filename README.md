@@ -74,9 +74,9 @@ const getIdFromAction = Action.match({
   ADD_TODO: ({ id}) => id,
   TOGGLE_TODO: ({ id }) => id,
   default: a => undefined,
-})
+});
 
-const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' })
+const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
 const id = getIdFromAction(action); // id === 'c819bbc1'
 ```
 
