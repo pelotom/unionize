@@ -138,7 +138,7 @@ unionize({...}, { value:'myPayloadProp' }); // <-- previously not possible
 
 **`match`**
 
-Whereas previously `match` was curried, now it can alternatively accept the object to match as a first argument. Additionally, the default case is now expressed as just another property in the cases object.
+Whereas previously `match` was always curried, now it can alternatively accept the object to match as a first argument. Additionally, the default case is now expressed as just another property in the cases object.
 
 ```ts
 // before
