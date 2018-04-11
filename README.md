@@ -11,7 +11,7 @@ yarn add unionize
 ## Example
 
 Call `unionize` on a record literal mapping tag literals to value types:
-```typescript
+```ts
 import { unionize, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
