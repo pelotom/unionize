@@ -11,15 +11,21 @@ yarn add unionize
 ## Example
 
 Call `unionize` on a record literal mapping tag literals to value types:
-```typescript
+```ts
 import { unionize, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
 const Action = unionize({
   ADD_TODO:                ofType<{ id: string; text: string }>(),
   SET_VISIBILITY_FILTER:   ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
-  TOGGLE_TODO:             ofType<{ id: string }>()},
-  { tag:'type', value:'payload'}); // optionally override tag and value property names
+  TOGGLE_TODO:             ofType<{ id: string }>()
+},
+  // optionally override tag and/or value property names
+  {
+    tag:'type',
+    value:'payload',
+  }
+);
 ```
 
 Extract the inferred tagged union:
@@ -52,27 +58,28 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
     // handle cases as pure functions instead of switch statements
     ADD_TODO: ({ id, text }) => [...state, { id, text, completed: false }],
     TOGGLE_TODO: ({ id }) =>
-      state.map(
-        todo =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      state.map(todo => todo.id === id
+        ? { ...todo, completed: !todo.completed }
+        : todo
       ),
     // handles the rest; if not provided, cases must be exhaustive 
-    default: a => state // a===action. Useful for curried version. 
+    default: a => state // a === action. Useful for curried version
   });
 ```
 
- `action` can be omitted. In that case the result of match is a function
+`action` can be omitted; in that case the result of match is a function:
 
 ```ts
 const getIdFromAction = Action.match({
   ADD_TODO: ({ id}) => id,
   TOGGLE_TODO: ({ id }) => id,
-  default: a => `${a.tag} doesn't have id`
-})
+  default: a => { throw new Error(`Action type ${a.type} does not have an associated id`); },
+});
 
-const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' })
+const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
 const id = getIdFromAction(action); // id === 'c819bbc1'
 ```
+
 #### Type predicates
 
 ```ts
@@ -113,35 +120,40 @@ const toggled = Light.transform(on, {
 
 Overall, it is pretty similar to `match` but reduces boilerplate. Also note that `transform` requires you to return an object of the same type.
 
-#### Breaking changes from 1.1
+#### Breaking changes from 1.0.1
 **config object**
 
-Now unionize accepts an optional config object istead of two additional arguments.
+Now `unionize` accepts an optional config object instead of two additional arguments.
+
 ```ts
-//before
+// before
 unionize({...}, 'myTag', 'myPayloadProp');
+unionize({...}, 'myTag');
 
-//now
-unionize({...}, {tag:'myTag', value:'myPayloadProp'});
+// after
+unionize({...}, { tag:'myTag', value:'myPayloadProp' });
+unionize({...}, { tag:'myTag' });
+unionize({...}, { value:'myPayloadProp' }); // <-- previously not possible
 ```
 
-**default case for match**
-```ts
-//before
-Light.match({On: ()=> 'is on'}, ()=>'is off')
+**`match`**
 
-//now
-Light.match({On: ()=> 'is on', default: ()=>'is off'})
-```
-
-That allowed to introduce inline matching
+Whereas previously `match` was always curried, now it can alternatively accept the object to match as a first argument. Additionally, the default case is now expressed as just another property in the cases object.
 
 ```ts
-const light = Light.Off({});
+// before
+Light.match({
+  On: () => 'is on'
+}, () => 'is off'
+)(light);
 
-//before you had to pass an object using ().
-Light.match({On: ()=> 'is on'}, ()=>'is off')(light);
-
-//now
-Light.match(light, {On: ()=> 'is on', default: ()=>'is off'})
+// after
+Light.match({
+  On: () => 'is on',
+  default: () =>'is off'
+})(light);
+Light.match(light, {
+  On: () => 'is on',
+  default: () => 'is off',
+});
 ```
