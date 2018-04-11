@@ -73,7 +73,7 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
 const getIdFromAction = Action.match({
   ADD_TODO: ({ id}) => id,
   TOGGLE_TODO: ({ id }) => id,
-  default: a => undefined,
+  default: a => { throw new Error(`Action type ${a.type} does not have an associated id`); },
 });
 
 const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
