@@ -80,7 +80,7 @@ const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
 const id = getIdFromAction(action); // id === 'c819bbc1'
 ```
 
-#### Type predicates
+#### Type guards
 
 ```ts
 const epic = (action$: Observable<Action>) => action$
