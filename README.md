@@ -16,9 +16,10 @@ import { unionize, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
 const Action = unionize({
-  ADD_TODO:                ofType<{ id: string; text: string }>(),
-  SET_VISIBILITY_FILTER:   ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
-  TOGGLE_TODO:             ofType<{ id: string }>()
+  ADD_TODO: ofType<{ id: string; text: string }>(),
+  SET_VISIBILITY_FILTER: ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
+  TOGGLE_TODO: ofType<{ id: string }>(),
+  CLEAR_TODOS: {}, // For "empty" types, just use {}
 },
   // optionally override tag and/or value property names
   {
@@ -39,6 +40,7 @@ type Action =
   | { type: ADD_TODO; payload: { id: string; text: string } }
   | { type: SET_VISIBILITY_FILTER; payload: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED' }
   | { type: TOGGLE_TODO; payload: { id: string } }
+  | { type: CLEAR_TODOS; payload: {} }
 ```
 
 Having done that, you now have at your disposal:
@@ -48,6 +50,7 @@ Having done that, you now have at your disposal:
 ```ts
 store.dispatch(Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' }));
 store.dispatch(Action.SET_VISIBILITY_FILTER('SHOW_COMPLETED'));
+store.dispatch(Action.CLEAR_TODOS()); // no argument required if value type is {}
 ```
 
 #### Match expressions
