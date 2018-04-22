@@ -4,6 +4,7 @@ describe('merged', () => {
   const Foo = unionize({
     x: ofType<{ n: number }>(),
     y: ofType<{ s: string }>(),
+    z: ofType<{}>(),
   });
 
   let foo: typeof Foo._Union;
@@ -17,6 +18,7 @@ describe('merged', () => {
       tag: 'x',
       n: 3,
     });
+    expect(Foo.z()).toEqual(Foo.z({}));
   });
 
   it('predicates', () => {
@@ -34,6 +36,7 @@ describe('merged', () => {
       Foo.match({
         x: ({ n }) => n + 9,
         y: ({ s }) => s.length,
+        z: () => 42,
       })(foo),
     ).toBe(12);
     expect(
@@ -49,6 +52,7 @@ describe('merged', () => {
       Foo.match(foo, {
         x: ({ n }) => n + 9,
         y: ({ s }) => s.length,
+        z: () => 42,
       }),
     ).toBe(12);
     expect(

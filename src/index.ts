@@ -9,7 +9,9 @@ export type Unionized<Record, TaggedRecord> = {
 } & Creators<Record, TaggedRecord>;
 
 export type Creators<Record, TaggedRecord> = {
-  [T in keyof Record]: (value: Record[T]) => TaggedRecord[keyof TaggedRecord]
+  [T in keyof Record]: {} extends Record[T]
+    ? ((value?: {}) => TaggedRecord[keyof TaggedRecord])
+    : ((value: Record[T]) => TaggedRecord[keyof TaggedRecord])
 };
 
 export type Predicates<TaggedRecord> = {
@@ -88,8 +90,8 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
 
   const creators = {} as Creators<Record, any>;
   for (const tag in record) {
-    creators[tag] = (value: any) =>
-      valProp ? { [tagProp]: tag, [valProp]: value } : { ...value, [tagProp]: tag };
+    creators[tag] = ((value = {}) =>
+      valProp ? { [tagProp]: tag, [valProp]: value } : { ...value, [tagProp]: tag }) as any;
   }
 
   const is = {} as Predicates<any>;
