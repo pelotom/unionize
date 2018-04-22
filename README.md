@@ -15,7 +15,7 @@ Call `unionize` on a record literal mapping tag literals to value types:
 import { unionize, ofType } from 'unionize'
 
 // Define a record mapping tag literals to value types
-const Action = unionize({
+const Actions = unionize({
   ADD_TODO: ofType<{ id: string; text: string }>(),
   SET_VISIBILITY_FILTER: ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
   TOGGLE_TODO: ofType<{ id: string }>(),
@@ -31,7 +31,7 @@ const Action = unionize({
 
 Extract the inferred tagged union:
 ```ts
-type Action = UnionOf<typeof Action>;
+type Action = UnionOf<typeof Actions>;
 ```
 
 The inferred type is
@@ -48,16 +48,16 @@ Having done that, you now have at your disposal:
 #### Element factories
 
 ```ts
-store.dispatch(Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' }));
-store.dispatch(Action.SET_VISIBILITY_FILTER('SHOW_COMPLETED'));
-store.dispatch(Action.CLEAR_TODOS()); // no argument required if value type is {}
+store.dispatch(Actions.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' }));
+store.dispatch(Actions.SET_VISIBILITY_FILTER('SHOW_COMPLETED'));
+store.dispatch(Actions.CLEAR_TODOS()); // no argument required if value type is {}
 ```
 
 #### Match expressions
 
 ```ts
 const todosReducer = (state: Todo[] = [], action: Action) =>
-  Action.match(action, {
+  Actions.match(action, {
     // handle cases as pure functions instead of switch statements
     ADD_TODO: ({ id, text }) => [...state, { id, text, completed: false }],
     TOGGLE_TODO: ({ id }) =>
@@ -73,13 +73,13 @@ const todosReducer = (state: Todo[] = [], action: Action) =>
 `action` can be omitted; in that case the result of match is a function:
 
 ```ts
-const getIdFromAction = Action.match({
+const getIdFromAction = Actions.match({
   ADD_TODO: ({ id}) => id,
   TOGGLE_TODO: ({ id }) => id,
   default: a => { throw new Error(`Action type ${a.type} does not have an associated id`); },
 });
 
-const action = Action.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
+const action = Actions.ADD_TODO({ id: 'c819bbc1', text: 'Take out the trash' });
 const id = getIdFromAction(action); // id === 'c819bbc1'
 ```
 
@@ -87,7 +87,7 @@ const id = getIdFromAction(action); // id === 'c819bbc1'
 
 ```ts
 const epic = (action$: Observable<Action>) => action$
-  .filter(Action.is.ADD_TODO)
+  .filter(Actions.is.ADD_TODO)
   // The appropriately narrowed type of the resulting observable is inferred...
   .mergeMap(({ payload }) => console.log(payload.text))
 ```
@@ -95,7 +95,7 @@ const epic = (action$: Observable<Action>) => action$
 #### Type casts
 
 ```ts
-const { id, text } = Action.as.ADD_TODO(someAction) // throws if someAction is not an ADD_TODO
+const { id, text } = Actions.as.ADD_TODO(someAction) // throws if someAction is not an ADD_TODO
 ```
 
 #### Transform expressions
