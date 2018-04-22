@@ -8,6 +8,10 @@ export type Unionized<Record, TaggedRecord> = {
   transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
 } & Creators<Record, TaggedRecord>;
 
+export type TagsOf<U extends Unionized<any, any>> = U['_Tags'];
+export type RecordOf<U extends Unionized<any, any>> = U['_Record'];
+export type UnionOf<U extends Unionized<any, any>> = U['_Union'];
+
 export type Creators<Record, TaggedRecord> = {
   [T in keyof Record]: {} extends Record[T]
     ? ((value?: {}) => TaggedRecord[keyof TaggedRecord])

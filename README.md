@@ -31,7 +31,7 @@ const Action = unionize({
 
 Extract the inferred tagged union:
 ```ts
-type Action = typeof Action._Union;
+type Action = UnionOf<typeof Action>;
 ```
 
 The inferred type is
