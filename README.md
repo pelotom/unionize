@@ -108,13 +108,13 @@ const Light = unionize({ On: ofType<{ percentage: number }>(), Off: {} });
 const turnOn = Light.transform({ Off: () => Light.On({ percentage: 100 }) });
 const dim = Light.transform({ On: prev => Light.On({ percentage: prev.percentage / 2 }) });
 
-const off = Light.Off({});
+const off = Light.Off();
 const dimmed = dim(off); //didn't match. so dimmed === off
 const on = turnOn(off);
 
 // can accept an object right away
 const toggled = Light.transform(on, {
-  On: () => Light.Off({}),
+  On: () => Light.Off(),
   Off: () => Light.On({ percentage: 50 }),
 });
 ```
