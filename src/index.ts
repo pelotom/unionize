@@ -1,4 +1,4 @@
-export type Unionized<Record, TaggedRecord> = {
+export type Unionized<Record, TaggedRecord, TagProp extends string> = {
   _Tags: keyof TaggedRecord;
   _Record: Record;
   _Union: TaggedRecord[keyof TaggedRecord];
@@ -6,16 +6,16 @@ export type Unionized<Record, TaggedRecord> = {
   as: Casts<Record, TaggedRecord[keyof TaggedRecord]>;
   match: Match<Record, TaggedRecord[keyof TaggedRecord]>;
   transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
-} & Creators<Record, TaggedRecord>;
+} & Creators<Record, TaggedRecord, TagProp>;
 
-export type TagsOf<U extends Unionized<any, any>> = U['_Tags'];
-export type RecordOf<U extends Unionized<any, any>> = U['_Record'];
-export type UnionOf<U extends Unionized<any, any>> = U['_Union'];
+export type TagsOf<U extends Unionized<any, any, any>> = U['_Tags'];
+export type RecordOf<U extends Unionized<any, any, any>> = U['_Record'];
+export type UnionOf<U extends Unionized<any, any, any>> = U['_Union'];
 
-export type Creators<Record, TaggedRecord> = {
-  [T in keyof Record]: {} extends Record[T]
+export type Creators<Record, TaggedRecord, TagProp extends string> = {
+  [T in keyof Record]: {} extends UnTagged<Record[T], TagProp>
     ? ((value?: {}) => TaggedRecord[keyof TaggedRecord])
-    : ((value: Record[T]) => TaggedRecord[keyof TaggedRecord])
+    : ((value: UnTagged<Record[T], TagProp>) => TaggedRecord[keyof TaggedRecord])
 };
 
 export type Predicates<TaggedRecord> = {
@@ -32,23 +32,30 @@ export type MatchCases<Record, Union, A> =
   | Cases<Record, A> & NoDefaultProp
   | Partial<Cases<Record, A>> & { default: (variant: Union) => A };
 
-export type Match<Record, Union> = {
+export interface Match<Record, Union> {
   <A>(cases: MatchCases<Record, Union, A>): (variant: Union) => A;
   <A>(variant: Union, cases: MatchCases<Record, Union, A>): A;
-};
+}
 
 export type TransformCases<Record, Union> = Partial<
   { [T in keyof Record]: (value: Record[T]) => Union }
 >;
 
-export type Transform<Record, Union> = {
+export interface Transform<Record, Union> {
   (cases: TransformCases<Record, Union>): (variant: Union) => Union;
   (variant: Union, cases: TransformCases<Record, Union>): Union;
-};
+}
 
 export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
-  [T in keyof Record]: { [_ in TagProp]: T } & Record[T]
+  [T in keyof Record]: Record[T] extends { [_ in TagProp]: T } // does record already has tag with correct value?
+    ? Record[T] // yes: return as is
+    : { [_ in TagProp]: T } & Record[T] // no: decorate with tag
 };
+
+export type UnTagged<Record, TagProp extends string = 'tag'> = Pick<
+  Record,
+  { [k in keyof Record]: k extends TagProp ? never : k }[keyof Record]
+>;
 
 export type SingleValueVariants<
   Record extends SingleValueRec,
@@ -57,7 +64,9 @@ export type SingleValueVariants<
 > = { [T in keyof Record]: { [_ in TagProp]: T } & { [_ in ValProp]: Record[T] } };
 
 // Forbid usage of default property; reserved for pattern matching.
-export type NoDefaultProp = { default?: never };
+export interface NoDefaultProp {
+  default?: never;
+}
 
 export type SingleValueRec = NoDefaultRec<{} | null>;
 export type MultiValueRec = NoDefaultRec<{ [tag: string]: any }>;
@@ -84,15 +93,15 @@ export function unionize<
 >(
   record: Record,
   config: { value: ValProp; tag?: TagProp },
-): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>>;
+): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>, TagProp>;
 export function unionize<Record extends MultiValueRec, TagProp extends string = 'tag'>(
   record: Record,
   config?: { tag: TagProp },
-): Unionized<Record, MultiValueVariants<Record, TagProp>>;
+): Unionized<Record, MultiValueVariants<Record, TagProp>, TagProp>;
 export function unionize<Record>(record: Record, config?: { value?: string; tag?: string }) {
   const { value: valProp = undefined, tag: tagProp = 'tag' } = config || {};
 
-  const creators = {} as Creators<Record, any>;
+  const creators = {} as Creators<Record, any, any>;
   for (const tag in record) {
     creators[tag] = ((value = {}) =>
       valProp ? { [tagProp]: tag, [valProp]: value } : { ...value, [tagProp]: tag }) as any;
