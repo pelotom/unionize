@@ -90,6 +90,19 @@ describe('merged', () => {
       expect(T.foo(input).conflict).toBe('foo');
     });
   });
+
+  describe('can define an interface tag', () => {
+    it('generate a type without an intersection', () => {
+      interface Foo {
+        tag: 'foo';
+        x: number;
+      }
+      const T = unionize({
+        foo: ofType<Foo>(),
+      });
+      expect(T.foo({ x: 42 }).tag).toBe('foo');
+    });
+  });
 });
 
 describe('separate', () => {
