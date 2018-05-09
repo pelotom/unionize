@@ -1,4 +1,4 @@
-import { ofType, unionize } from '.';
+import { ofType, unionize, UnionOf, Unionized } from '.';
 
 describe('merged', () => {
   const Foo = unionize({
@@ -345,5 +345,16 @@ describe('transform without value prop', () => {
     //met cases
     expect(Data.transform(str, { str: strLen })).toEqual(num);
     expect(Data.transform({ str: strLen })(str)).toEqual(num);
+  });
+});
+
+describe('type accessors', () => {
+  describe('unionOf', () => {
+    it('should be usable', () => {
+      const T = unionize({
+        foo: ofType<{ x: number }>(),
+      });
+      type ActionType = UnionOf<typeof T>;
+    });
   });
 });
