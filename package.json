@@ -25,7 +25,10 @@
   "jest": {
     "verbose": false,
     "testRegex": ".*/*.spec.ts$",
-    "moduleFileExtensions": ["js", "ts"],
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
     "transform": {
       "\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor"
     },
