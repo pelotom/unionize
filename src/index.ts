@@ -61,10 +61,9 @@ export type MultiValueVariants<Record extends MultiValueRec, TagProp extends str
     : { [_ in TagProp]: T } & Record[T] // no: decorate with tag
 };
 
-export type UnTagged<Record, TagProp extends string = 'tag'> = Pick<
-  Record,
-  { [k in keyof Record]: k extends TagProp ? never : k }[keyof Record]
->;
+export type UnTagged<Record, TagProp extends string = 'tag'> = Record extends {}
+  ? Pick<Record, { [k in keyof Record]: k extends TagProp ? never : k }[keyof Record]>
+  : never;
 
 export type SingleValueVariants<
   Record extends SingleValueRec,
