@@ -358,3 +358,16 @@ describe('type accessors', () => {
     });
   });
 });
+
+describe('separate with union value', () => {
+  const Foo = unionize(
+    {
+      union: ofType<{ status: 'a' } | { status: 'b'; payload: string }>(),
+    },
+    { tag: 'not_tag', value: 'value' },
+  );
+
+  it('creation', () => {
+    Foo.union({ status: 'b', payload: 'something' });
+  });
+});
