@@ -10,11 +10,10 @@ yarn add unionize
 
 ## Example
 
-Call `unionize` on a record literal mapping tag literals to value types:
+Provide `unionize` with a mapping of tags to value types:
 ```ts
 import { unionize, ofType } from 'unionize'
 
-// Define a record mapping tag literals to value types
 const Actions = unionize({
   ADD_TODO: ofType<{ id: string; text: string }>(),
   SET_VISIBILITY_FILTER: ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
