@@ -40,7 +40,7 @@ type Action =
   | { type: ADD_TODO; payload: { id: string; text: string } }
   | { type: SET_VISIBILITY_FILTER; payload: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED' }
   | { type: TOGGLE_TODO; payload: { id: string } }
-  | { type: CLEAR_TODOS; payload: {} }
+  | { type: CLEAR_TODOS; payload: {} };
 ```
 
 Having done that, you now have at your disposal:
@@ -89,13 +89,13 @@ const id = getIdFromAction(action); // id === 'c819bbc1'
 const epic = (action$: Observable<Action>) => action$
   .filter(Actions.is.ADD_TODO)
   // The appropriately narrowed type of the resulting observable is inferred...
-  .mergeMap(({ payload }) => console.log(payload.text))
+  .mergeMap(({ payload }) => console.log(payload.text));
 ```
 
 #### Type casts
 
 ```ts
-const { id, text } = Actions.as.ADD_TODO(someAction) // throws if someAction is not an ADD_TODO
+const { id, text } = Actions.as.ADD_TODO(someAction); // throws if someAction is not an ADD_TODO
 ```
 
 #### Transform expressions
