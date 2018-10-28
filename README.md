@@ -11,6 +11,39 @@ yarn add unionize
 ## Example
 
 Provide `unionize` with a mapping of tags to value types:
+
+```ts
+import { unionize, ofType } from 'unionize';
+
+const Actions = unionize({
+  ADD_TODO: ofType<{ id: string; text: string }>(),
+  CLEAR_TODOS: {}, // For "empty" types, just use {}
+});
+```
+
+Extract the inferred tagged union:
+
+```ts
+import { UnionOf } from 'unionize'
+
+type Action = UnionOf<typeof Actions>;
+```
+
+The inferred type is:
+
+```ts
+type Action = ({
+    tag: "ADD_TODO";
+} & {
+    id: string;
+    text: string;
+}) | {
+    tag: "CLEAR_TODOS";
+}
+```
+
+We can also optionally provide tag and/or value property names:
+
 ```ts
 import { unionize, ofType } from 'unionize'
 
@@ -19,27 +52,44 @@ const Actions = unionize({
   SET_VISIBILITY_FILTER: ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>(),
   TOGGLE_TODO: ofType<{ id: string }>(),
   CLEAR_TODOS: {}, // For "empty" types, just use {}
-},
-  // optionally override tag and/or value property names
-  {
+}, {
     tag:'type',
     value:'payload',
-  }
-);
+});
 ```
 
-Extract the inferred tagged union:
-```ts
-type Action = UnionOf<typeof Actions>;
-```
+Now the inferred type would be:
 
-The inferred type is
 ```ts
 type Action =
-  | { type: ADD_TODO; payload: { id: string; text: string } }
-  | { type: SET_VISIBILITY_FILTER; payload: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED' }
-  | { type: TOGGLE_TODO; payload: { id: string } }
-  | { type: CLEAR_TODOS; payload: {} };
+  | { type: 'ADD_TODO'; payload: { id: string; text: string } }
+  | { type: 'SET_VISIBILITY_FILTER'; payload: 'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED' }
+  | { type: 'TOGGLE_TODO'; payload: { id: string } }
+  | { type: 'CLEAR_TODOS'; payload: {} };
+```
+
+which is now [FSA compliant](https://github.com/redux-utilities/flux-standard-action).
+
+Note that when the tag property is omitted, `"tag"` will be used as the tag property. But if the value tag name is omitted, the generated sum type does not use a default `"value"` property -- Instead, it intersects the value type with `{ [tagProp]: tag }`.
+
+While this is convenient when dealing with value types which are objects (No need to access the value through a `.value` accessor), it should be obvious that the value type can only be an object type if value tag is omitted. 
+
+So something like `ofType<'SHOW_ALL' | 'SHOW_ACTIVE' | 'SHOW_COMPLETED'>` is only legal as a value type when a `value` property name is provided:
+
+```ts
+const Actions = unionize({
+  ADD_TODO: ofType<{ id: string; text: string }>(),
+  SET_VISIBILITY_FILTER: ofType<                           
+    "SHOW_ALL" | "SHOW_ACTIVE" | "SHOW_COMPLETED"
+  >()
+})
+```
+
+The above fails with the error
+
+```
+Type '"SHOW_ALL" | "SHOW_ACTIVE" | "SHOW_COMPLETED"' is not assignable to type '{ [tag: string]: any; }'.
+  Type '"SHOW_ALL"' is not assignable to type '{ [tag: string]: any; }'.
 ```
 
 Having done that, you now have at your disposal:
