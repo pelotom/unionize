@@ -61,8 +61,8 @@ export type MultiValueVariants<Record extends MultiValueRec, TagProp extends str
     : { [_ in TagProp]: T } & Record[T] // no: decorate with tag
 };
 
-export type UnTagged<Record, TagProp extends string = 'tag'> = Record extends {}
-  ? Pick<Record, { [k in keyof Record]: k extends TagProp ? never : k }[keyof Record]>
+export type UnTagged<Record, TagProp extends string = 'tag'> = Record extends any
+  ? Pick<Record, Exclude<keyof Record, TagProp>>
   : never;
 
 export type SingleValueVariants<
@@ -111,7 +111,7 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
 
   const creators = {} as Creators<Record, any, any>;
   for (const tag in record) {
-    creators[tag] = ((value = {}) =>
+    creators[tag] = ((value: any = {}) =>
       valProp ? { [tagProp]: tag, [valProp]: value } : { ...value, [tagProp]: tag }) as any;
   }
 

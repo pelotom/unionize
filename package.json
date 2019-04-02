@@ -19,7 +19,7 @@
     "jest": "^21.2.1",
     "prettier": "^1.11.1",
     "ts-jest": "^21.2.4",
-    "typescript": "^2.8.1"
+    "typescript": "^3.4.1"
   },
   "jest": {
     "verbose": false,
