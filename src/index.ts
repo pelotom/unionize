@@ -76,8 +76,12 @@ export interface NoDefaultProp {
   default?: never;
 }
 
+export interface NoTagProp {
+  tag?: never;
+}
+
 export type SingleValueRec = NoDefaultRec<{} | null>;
-export type MultiValueRec = NoDefaultRec<{ [tag: string]: any }>;
+export type MultiValueRec = NoDefaultRec<{ [tag: string]: any } & NoTagProp>;
 export type NoDefaultRec<Val> = {
   [k: string]: Val;
 } & NoDefaultProp;
