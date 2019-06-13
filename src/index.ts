@@ -55,7 +55,7 @@ export interface Transform<Record, Union> {
   (variant: Union, cases: TransformCases<Record, Union>): Union;
 }
 
-export type MultiValueVariants<Record extends MultiValueRec, TagProp extends string> = {
+export type MultiValueVariants<Record extends MultiValueRec<TagProp>, TagProp extends string> = {
   [T in keyof Record]: Record[T] extends { [_ in TagProp]: T } // does record already has tag with correct value?
     ? Record[T] // yes: return as is
     : { [_ in TagProp]: T } & Record[T] // no: decorate with tag
@@ -76,12 +76,10 @@ export interface NoDefaultProp {
   default?: never;
 }
 
-export interface NoTagProp {
-  tag?: never;
-}
-
 export type SingleValueRec = NoDefaultRec<{} | null>;
-export type MultiValueRec = NoDefaultRec<{ [tag: string]: any } & NoTagProp>;
+export type MultiValueRec<TagProp extends string> = NoDefaultRec<
+  { [tag: string]: any } & { [tag in TagProp]?: never }
+>;
 export type NoDefaultRec<Val> = {
   [k: string]: Val;
 } & NoDefaultProp;
@@ -106,7 +104,7 @@ export function unionize<
   record: Record,
   config: { value: ValProp; tag?: TagProp },
 ): Unionized<Record, SingleValueVariants<Record, TagProp, ValProp>, TagProp>;
-export function unionize<Record extends MultiValueRec, TagProp extends string = 'tag'>(
+export function unionize<Record extends MultiValueRec<TagProp>, TagProp extends string = 'tag'>(
   record: Record,
   config?: { tag: TagProp },
 ): Unionized<Record, MultiValueVariants<Record, TagProp>, TagProp>;
