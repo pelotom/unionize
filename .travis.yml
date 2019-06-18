@@ -3,6 +3,7 @@ node_js:
   - node
 cache: yarn
 script:
+  - yarn build
   - yarn test
   - yarn format
 after_success: cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
