@@ -22,7 +22,7 @@ export type RecordOf<U extends UnionTypes<any, any>> = U['_Record'];
 export type UnionOf<U extends UnionTypes<any, any>> = U['_Union'];
 
 export type Creators<Record, TaggedRecord, TagProp extends string> = {
-  [T in keyof Record]: {} extends UnTagged<Record[T], TagProp>
+  [T in keyof Record]: {} extends Required<UnTagged<Record[T], TagProp>>
     ? ((value?: {}) => TaggedRecord[keyof TaggedRecord])
     : ((value: UnTagged<Record[T], TagProp>) => TaggedRecord[keyof TaggedRecord])
 };
