@@ -22,9 +22,9 @@ export type RecordOf<U extends UnionTypes<any, any>> = U['_Record'];
 export type UnionOf<U extends UnionTypes<any, any>> = U['_Union'];
 
 export type Creators<Record, TaggedRecord, TagProp extends string> = {
-  [T in keyof Record]: {} extends Required<UnTagged<Record[T], TagProp>>
+  [T in keyof Record]: {} extends Required<Record[T]>
     ? ((value?: {}) => TaggedRecord[keyof TaggedRecord])
-    : ((value: UnTagged<Record[T], TagProp>) => TaggedRecord[keyof TaggedRecord])
+    : ((value: Record[T]) => TaggedRecord[keyof TaggedRecord])
 };
 
 export type Predicates<TaggedRecord> = {
@@ -60,10 +60,6 @@ export type MultiValueVariants<Record extends MultiValueRec<TagProp>, TagProp ex
     ? Record[T] // yes: return as is
     : { [_ in TagProp]: T } & Record[T] // no: decorate with tag
 };
-
-export type UnTagged<Record, TagProp extends string = 'tag'> = Record extends any
-  ? Pick<Record, Exclude<keyof Record, TagProp>>
-  : never;
 
 export type SingleValueVariants<
   Record extends SingleValueRec,
