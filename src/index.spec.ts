@@ -1,4 +1,4 @@
-import { ofType, unionize, UnionOf, Unionized } from '.';
+import { ofType, unionize, UnionOf, TaggedRecordOf, Unionized } from '.';
 
 describe('merged', () => {
   const Foo = unionize({
@@ -342,6 +342,14 @@ describe('type accessors', () => {
         foo: ofType<{ x: number }>(),
       });
       type ActionType = UnionOf<typeof T>;
+    });
+  });
+  describe('TaggedRecordOf', () => {
+    it('should be usable', () => {
+      const T = unionize({
+        foo: ofType<{ x: number }>(),
+      });
+      type TaggedRecord = TaggedRecordOf<typeof T>;
     });
   });
 });
