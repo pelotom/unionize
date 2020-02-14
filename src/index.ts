@@ -6,6 +6,7 @@ export type Unionized<Record, TaggedRecord, TagProp extends string> = UnionTypes
   UnionExtensions<Record, TaggedRecord>;
 
 export interface UnionTypes<Record, TaggedRecord> {
+  _TaggedRecord: TaggedRecord;
   _Tags: keyof TaggedRecord;
   _Record: Record;
   _Union: TaggedRecord[keyof TaggedRecord];
@@ -17,6 +18,7 @@ export interface UnionExtensions<Record, TaggedRecord> {
   transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
 }
 
+export type TaggedRecordOf<U extends UnionTypes<any, any>> = U['_TaggedRecord'];
 export type TagsOf<U extends UnionTypes<any, any>> = U['_Tags'];
 export type RecordOf<U extends UnionTypes<any, any>> = U['_Record'];
 export type UnionOf<U extends UnionTypes<any, any>> = U['_Union'];
