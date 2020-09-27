@@ -366,3 +366,15 @@ describe('separate with union value', () => {
     Foo.union({ status: 'b', payload: 'something' });
   });
 });
+
+describe('record tags', () => {
+  const LightBulb = unionize({
+    ON: ofType<{ dimLevel: number }>(),
+    OFF: ofType<{}>(),
+  });
+
+  it('should allow to access the tags', () => {
+    expect(LightBulb.tags.ON).toBe('ON');
+    expect(LightBulb.tags.OFF).toBe('OFF');
+  });
+});
