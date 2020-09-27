@@ -14,6 +14,7 @@ export interface UnionTypes<Record, TaggedRecord> {
 export interface UnionExtensions<Record, TaggedRecord> {
   is: Predicates<TaggedRecord>;
   as: Casts<Record, TaggedRecord[keyof TaggedRecord]>;
+  tags: TagRecord<Record>;
   match: Match<Record, TaggedRecord[keyof TaggedRecord]>;
   transform: Transform<Record, TaggedRecord[keyof TaggedRecord]>;
 }
@@ -56,6 +57,8 @@ export interface Transform<Record, Union> {
   (cases: TransformCases<Record, Union>): (variant: Union) => Union;
   (variant: Union, cases: TransformCases<Record, Union>): Union;
 }
+
+export type TagRecord<Record> = { [T in keyof Record]: T };
 
 export type MultiValueVariants<Record extends MultiValueRec<TagProp>, TagProp extends string> = {
   [T in keyof Record]: Record[T] extends { [_ in TagProp]: T } // does record already has tag with correct value?
@@ -144,10 +147,16 @@ export function unionize<Record>(record: Record, config?: { value?: string; tag?
     });
   }
 
+  const tags = {} as TagRecord<Record>;
+  for (const tag in record) {
+    tags[tag] = tag;
+  }
+
   return Object.assign(
     {
       is,
       as,
+      tags,
       match,
       transform,
       _Record: record,
